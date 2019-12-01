@@ -1,5 +1,5 @@
 ﻿// design-time error in Rider, works during build.
-open AdventOfCode2019
+open AdventOfCode2019.Day1
 open System
 open AdventOfCode2019.Day1Test
 
@@ -13,5 +13,8 @@ let main argv =
     ]
     printfn "Test count: %d" tests.Length
     
-    // if we get here, all tests passed (no assertions failed).  
+    printfn "Day 1 part 1 result: %d" total1
+    printfn "Day 1 part 2 result: %d" total2
+    
+    // if we get here, everything is OK - all tests passed (no assertions failed).  
     0

@@ -23,5 +23,3 @@ let ``calcFuel2 regular2`` =
     let expected = 50346
     let actual = calcFuel2 100756
     assert (expected = actual)
-    
-   
