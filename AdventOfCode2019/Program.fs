@@ -1,8 +1,15 @@
-﻿// Learn more about F# at http://fsharp.org
-
+﻿// design-time error in Rider, works during build.
+open AdventOfCode2019
 open System
+open AdventOfCode2019.Day1Test
 
 [<EntryPoint>]
 let main argv =
-    printfn "Hello World from F#!"
-    0 // return an integer exit code
+    let tests = [
+        ``calcFuel1 happy path``
+        ``calcFuel1 fail``
+    ]
+    printfn "Test count: %d" tests.Length
+    
+    // if we get here, all tests passed (no assertions failed).  
+    0
