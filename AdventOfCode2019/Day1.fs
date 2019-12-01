@@ -28,11 +28,12 @@ let total1 = Array.sumBy calcFuel1 input
 // What is the sum of the fuel requirements for all of the modules on your spacecraft when also taking into account the mass of the added fuel? (Calculate the fuel requirements for each module separately, then add them all up at the end.)
 
 let calcFuel2 moduleMass =
-    let mutable fuelInc = (moduleMass / 3) - 2
+    let calcFuelInc mass = (mass / 3) - 2
+    let mutable fuelInc = calcFuelInc moduleMass
     let mutable fuelTotal = 0
     while fuelInc > 0 do
         fuelTotal <- fuelTotal + fuelInc
-        fuelInc <- (fuelInc / 3) - 2
+        fuelInc <- calcFuelInc fuelInc
     fuelTotal
 
 let total2 = Array.sumBy calcFuel2 input

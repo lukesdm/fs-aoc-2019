@@ -8,6 +8,8 @@ let main argv =
     let tests = [
         ``calcFuel1 happy path``
         ``calcFuel2 small``
+        ``calcFuel2 regular``
+        ``calcFuel2 regular2``
     ]
     printfn "Test count: %d" tests.Length
     
