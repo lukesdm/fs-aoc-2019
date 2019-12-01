@@ -7,7 +7,7 @@ open AdventOfCode2019.Day1Test
 let main argv =
     let tests = [
         ``calcFuel1 happy path``
-        ``calcFuel1 fail``
+        ``calcFuel2 small``
     ]
     printfn "Test count: %d" tests.Length
     
