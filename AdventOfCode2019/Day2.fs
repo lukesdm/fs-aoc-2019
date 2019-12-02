@@ -18,30 +18,33 @@ let restoredProgram =
     result.[2] <- 2
     result
     
-type OpArgs = { In1Pos : int; In2Pos : int ; OutPos : int }
-type Operation =
+type OpParams = { In1Address : int; In2Address : int ; OutAddress : int }
+type Instruction =
     | Halt
-    | Add of OpArgs
-    | Multiply of OpArgs
+    | Add of OpParams
+    | Multiply of OpParams
     | Undefined
 
-let parse (block: int[]) : Operation =
+let parse (block: int[]) : Instruction =
     match block with
     | b when b.[0] = 99 -> Halt
-    | [|1; inPos1; inPos2; outPos|] -> Add { In1Pos = inPos1; In2Pos = inPos2; OutPos = outPos }
-    | [|2; inPos1; inPos2; outPos|] -> Multiply { In1Pos = inPos1; In2Pos = inPos2; OutPos = outPos }
-    | _ -> failwith "Unexpected input"
-    // TODO: Tidy up
+    | [| opCode; inPos1; inPos2; outPos |] ->
+        let opParams = { In1Address = inPos1; In2Address = inPos2; OutAddress = outPos }
+        match opCode with
+        | 1 -> Add opParams
+        | 2 -> Multiply opParams
+        | _ -> failwith "Unexpected opCode"
+    | _ -> failwith "Bad input format"
 
 let eval (program: Program) operation =
     match operation with
-    | Add op -> program.[op.OutPos] <- program.[op.In1Pos] + program.[op.In2Pos]
-    | Multiply op -> program.[op.OutPos] <- program.[op.In1Pos] * program.[op.In2Pos]
+    | Add op -> program.[op.OutAddress] <- program.[op.In1Address] + program.[op.In2Address]
+    | Multiply op -> program.[op.OutAddress] <- program.[op.In1Address] * program.[op.In2Address]
     | _ -> ignore()
     
 let run (program : Program) =
     let mutable pc = 0
-    let mutable operation : Operation = Undefined 
+    let mutable operation : Instruction = Undefined 
     while not (operation = Halt) do
         assert (pc < program.Length)
         
