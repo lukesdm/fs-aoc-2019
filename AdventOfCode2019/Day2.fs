@@ -10,6 +10,13 @@ let input : Program =
     (File.ReadAllText "day2-input.txt")
         .Split(",")
     |> Array.map System.Int32.Parse
+
+// "before running the program, replace position 1 with the value 12 and replace position 2 with the value 2"
+let restoredProgram =
+    let result = Array.copy input
+    result.[1] <- 12
+    result.[2] <- 2
+    result
     
 type OpArgs = { In1Pos : int; In2Pos : int ; OutPos : int }
 type Operation =
@@ -28,7 +35,8 @@ let parse (block: int[]) : Operation =
 
 let eval (program: Program) operation =
     match operation with
-    | Add a -> program.[a.OutPos] <- program.[a.In1Pos] + program.[a.In2Pos]
+    | Add op -> program.[op.OutPos] <- program.[op.In1Pos] + program.[op.In2Pos]
+    | Multiply op -> program.[op.OutPos] <- program.[op.In1Pos] * program.[op.In2Pos]
     | _ -> ignore()
     
 let run (program : Program) =
