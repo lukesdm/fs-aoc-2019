@@ -10,6 +10,7 @@ open System.Text.RegularExpressions
 // Find intersection closest the origin (by manhattan distance)
 type Point = {x: int; y: int}
 type WireSegment = {p1: Point; p2: Point}
+type Wire = WireSegment[]
 
 let parseWireDescription (input: string) =
     let regex = new Regex "(U|D|L|R)(\d+)" // grp1 = dir, grp2 = amount
@@ -34,8 +35,40 @@ let parseWireDescription (input: string) =
 // Manhattan distance
 let calcDistance p1 p2 =
     Math.Abs(p2.x - p1.x) + Math.Abs(p2.y - p1.y)
+    
+// n1 <= x <= n2
+let isBetween x n1 n2 =
+    (n1 <= x && x <= n2)
+    || (n2 <= x && x <= n1)
+let intersects (segA: WireSegment) (segB: WireSegment) =
+    let res =
+        (isBetween segB.p1.x segA.p1.x segA.p2.x
+        && isBetween segB.p2.x segA.p1.x segA.p2.x
+        && isBetween segA.p1.y segB.p1.y segB.p2.y
+        && isBetween segA.p2.y segB.p1.y segB.p2.y)
+        ||
+        (isBetween segB.p1.y segA.p1.y segA.p2.y
+        && isBetween segB.p2.y segA.p1.y segA.p2.y
+        && isBetween segA.p1.x segB.p1.x segB.p2.x
+        && isBetween segA.p2.x segB.p1.x segB.p2.x)
+    res
+
+ 
+let calcIntersection (segA: WireSegment) (segB: WireSegment) =
+    {x=0; y=0} // TODO: Properly implement
+    
+let calcIntersections (wireA: Wire) (wireB: Wire): Set<Point> =
+    let mutable intersections = Set.empty
+    //intersections <- intersections.Add {x = 0; y = 0}
+    wireB |> Array.iter (fun segB ->
+        wireA |> Array.iter (fun segA ->
+            if intersects segA segB then
+                intersections <- intersections.Add
+                                 <| calcIntersection segA segB
+        )
+    )
+    intersections
  
 let readInput =
     File.ReadAllLines "day3-input.txt"
     |> Array.map parseWireDescription
-    
