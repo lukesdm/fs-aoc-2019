@@ -39,12 +39,21 @@ let total1 = Array.sumBy calcFuel1 input
 //    fuelTotal
 
 // recursive attempt (not tail recursive)
+//let calcFuel2 moduleMass =
+//    let calcFuelInc mass = (mass / 3) - 2  
+//    let rec calcFuelTotal mass =
+//        let fuelMass = calcFuelInc mass
+//        if fuelMass < 0 then 0 else
+//            fuelMass + calcFuelTotal fuelMass
+//    calcFuelTotal moduleMass
+    
+// tail recursive solution
 let calcFuel2 moduleMass =
     let calcFuelInc mass = (mass / 3) - 2  
-    let rec calcFuelTotal mass =
+    let rec calcFuelTotal mass acc =
         let fuelMass = calcFuelInc mass
-        if fuelMass < 0 then 0 else
-            fuelMass + calcFuelTotal fuelMass
-    calcFuelTotal moduleMass
+        if fuelMass < 0 then acc else
+            calcFuelTotal fuelMass (acc + fuelMass)
+    calcFuelTotal moduleMass 0
 
 let total2 = Array.sumBy calcFuel2 input
