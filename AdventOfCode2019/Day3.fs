@@ -77,7 +77,14 @@ let calcIntersections (wireA: Wire) (wireB: Wire): Set<Point> =
         )
     )
     intersections.Remove {x = 0; y = 0}
- 
+
+let findClosestIntersection (wireA : Wire) (wireB : Wire) =
+    let closest =
+        calcIntersections wireA wireB
+        |> Set.map (calcDistance {x = 0; y = 0})
+        |> Set.minElement
+    closest
+    
 let readInput =
     File.ReadAllLines "day3-input.txt"
     |> Array.map parseWireDescription
