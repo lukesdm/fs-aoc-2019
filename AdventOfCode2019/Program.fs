@@ -23,8 +23,12 @@ let main argv =
     printfn "Day 1 part 1 result: %d" Day1.total1 // 3369286 verified as correct
     printfn "Day 1 part 2 result: %d" Day1.total2 // 5051054 verified as correct
     
-    let x = Day2.run Day2.restoredProgram
-    printfn "Day 2 part 1 result: %d" x.[0] // 3765464 verified as correct
+    let endState = Day2.run Day2.initForPart1
+    printfn "Day 2 part 1 result: %d" endState.[0] // 3765464 verified as correct
+    
+    let d2p2 = Day2.test
+    printfn "Day 2 part 2 result: %d (output was %d)" (100 * d2p2.Noun + d2p2.Verb) d2p2.Output
+    
     
     // if we get here, everything is OK - all tests passed (no assertions failed).  
     0
