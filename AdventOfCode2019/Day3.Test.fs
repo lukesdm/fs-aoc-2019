@@ -42,6 +42,20 @@ let ``Can check intersection - yes`` =
     let actual = intersects a b
     assert (expected = actual)
     
+let ``Can check intersection - yes - rev segments`` =
+    let a = { p1 = {x = 1; y = 0}; p2 = {x = 1; y = 2}}
+    let b = { p1 = {x = 0; y = 1}; p2 = {x = 2; y = 1}}
+    let expected = true
+    let actual = intersects b a
+    assert (expected = actual)
+    
+let ``Can check intersection - yes - rev points`` =
+    let a = { p2 = {x = 1; y = 0}; p1 = {x = 1; y = 2}}
+    let b = { p1 = {x = 0; y = 1}; p2 = {x = 2; y = 1}}
+    let expected = true
+    let actual = intersects a b
+    assert (expected = actual)
+    
 let ``Can check intersection - no`` =
     let a = { p1 = {x = 1; y = 0}; p2 = {x = 1; y = 2}}
     let b = { p1 = {x = 0; y = 3}; p2 = {x = 2; y = 3}}
@@ -49,7 +63,28 @@ let ``Can check intersection - no`` =
     let actual = intersects a b
     assert (expected = actual)
     
-    // TODO: Test with P1 and P2 in different orders!
+let ``Can check intersection - no - rev segments`` =
+    let a = { p1 = {x = 1; y = 0}; p2 = {x = 1; y = 2}}
+    let b = { p1 = {x = 0; y = 3}; p2 = {x = 2; y = 3}}
+    let expected = false
+    let actual = intersects b a
+    assert (expected = actual)
+    
+let ``Can check intersection - no - rev points`` =
+    let a = { p2 = {x = 1; y = 0}; p1 = {x = 1; y = 2}}
+    let b = { p1 = {x = 0; y = 3}; p2 = {x = 2; y = 3}}
+    let expected = false
+    let actual = intersects a b
+    assert (expected = actual)
+    
+    // TODO: Test with negatives?
+    
+let ``calc intersection 1`` =
+    let a = { p1 = {x = 1; y = 0}; p2 = {x = 1; y = 2}}
+    let b = { p1 = {x = 0; y = 1}; p2 = {x = 2; y = 1}}
+    let expected = { x = 1; y = 1 }
+    let actual = calcIntersection a b
+    assert (expected = actual)
 
 // Example 1.
 // Wire 1: R8,U5,L5,D3

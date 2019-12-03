@@ -40,6 +40,7 @@ let calcDistance p1 p2 =
 let isBetween x n1 n2 =
     (n1 <= x && x <= n2)
     || (n2 <= x && x <= n1)
+
 let intersects (segA: WireSegment) (segB: WireSegment) =
     let res =
         (isBetween segB.p1.x segA.p1.x segA.p2.x
@@ -55,7 +56,15 @@ let intersects (segA: WireSegment) (segB: WireSegment) =
 
  
 let calcIntersection (segA: WireSegment) (segB: WireSegment) =
-    {x=0; y=0} // TODO: Properly implement
+    // Quick and dirty - probably won't handle overlaps well.
+    // Assume the 'has intersection' check has been performed...
+    // Uses fact that there are only horizontal and vertical lines,
+    // i.e. x and y are constant throughout line segment
+    let intersection =
+        if segA.p1.y = segA.p2.y
+        then { x = segB.p1.x; y = segA.p1.y }
+        else { x = segA.p1.x; y = segB.p1.y }
+    intersection
     
 let calcIntersections (wireA: Wire) (wireB: Wire): Set<Point> =
     let mutable intersections = Set.empty
@@ -67,7 +76,7 @@ let calcIntersections (wireA: Wire) (wireB: Wire): Set<Point> =
                                  <| calcIntersection segA segB
         )
     )
-    intersections
+    intersections.Remove {x = 0; y = 0}
  
 let readInput =
     File.ReadAllLines "day3-input.txt"
