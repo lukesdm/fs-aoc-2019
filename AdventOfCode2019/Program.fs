@@ -20,6 +20,7 @@ let main argv =
         
         Day3Test.``Can parse a wire description``
         Day3Test.``Can calculate distance``
+        Day3Test.``Can read input``
     ]
     printfn "Test count: %d" tests.Length
     

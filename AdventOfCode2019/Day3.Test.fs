@@ -30,6 +30,10 @@ let ``Can calculate distance`` =
         assert (expectedDist = actualDist)
         )
     
-//let ``can parse input`` = 
-//    let input = [|"R8,U5,L5,D3"; "U7,R6,D4,L4" |]
-//    let ab = input |> Array.map (fun (s: string) -> s.Split ",") 
+let ``Can read input`` = 
+    let wires = readInput
+    let wireA, wireB = wires.[0], wires.[1] 
+    assert (wireA.Length > 0)
+    assert (wireB.Length > 0)
+    
+     
