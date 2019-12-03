@@ -1,5 +1,6 @@
 ﻿module AdventOfCode2019.Day1
 open System.IO
+open System;
 
 // PART 1:
 // Fuel required to launch a given module is based on its mass.
@@ -27,13 +28,23 @@ let total1 = Array.sumBy calcFuel1 input
 // The fuel required by a module of mass 100756 and its fuel is: 33583 + 11192 + 3728 + 1240 + 411 + 135 + 43 + 12 + 2 = 50346.
 // What is the sum of the fuel requirements for all of the modules on your spacecraft when also taking into account the mass of the added fuel? (Calculate the fuel requirements for each module separately, then add them all up at the end.)
 
+// Original iterative version:
+//let calcFuel2 moduleMass =
+//    let calcFuelInc mass = (mass / 3) - 2
+//    let mutable fuelInc = calcFuelInc moduleMass
+//    let mutable fuelTotal = 0
+//    while fuelInc > 0 do
+//        fuelTotal <- fuelTotal + fuelInc
+//        fuelInc <- calcFuelInc fuelInc
+//    fuelTotal
+
+// recursive attempt (not tail recursive)
 let calcFuel2 moduleMass =
-    let calcFuelInc mass = (mass / 3) - 2
-    let mutable fuelInc = calcFuelInc moduleMass
-    let mutable fuelTotal = 0
-    while fuelInc > 0 do
-        fuelTotal <- fuelTotal + fuelInc
-        fuelInc <- calcFuelInc fuelInc
-    fuelTotal
+    let calcFuelInc mass = (mass / 3) - 2  
+    let rec calcFuelTotal mass =
+        let fuelMass = calcFuelInc mass
+        if fuelMass < 0 then 0 else
+            fuelMass + calcFuelTotal fuelMass
+    calcFuelTotal moduleMass
 
 let total2 = Array.sumBy calcFuel2 input
