@@ -14,8 +14,22 @@ let ``Can parse a wire description`` =
     |]
     let actualWireSegments = parseWireDescription wireDescription
     assert (actualWireSegments = expectedWireSegments)
-    
 
+let ``Can calculate distance`` =
+    let o = {x = 0; y = 0}
+    [|
+        // input point, expected dist
+        ({x = 3; y = 3;}, 6)
+        ({x = 3; y = 4;}, 7)
+        ({x = -3; y = 2;}, 5)
+        ({x = 1; y = -8;}, 9)
+    |]
+    |> Array.iter ( fun t ->
+        let (p, expectedDist) = t
+        let actualDist = calcDistance o p
+        assert (expectedDist = actualDist)
+        )
+    
 //let ``can parse input`` = 
 //    let input = [|"R8,U5,L5,D3"; "U7,R6,D4,L4" |]
 //    let ab = input |> Array.map (fun (s: string) -> s.Split ",") 

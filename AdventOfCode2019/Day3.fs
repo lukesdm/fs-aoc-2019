@@ -1,4 +1,5 @@
 ﻿module AdventOfCode2019.Day3
+open System
 open System.Text.RegularExpressions
 
 // Intersecting Wires
@@ -29,3 +30,6 @@ let parseWireDescription (input: string) =
         )
     segments
     
+// Manhattan distance
+let calcDistance p1 p2 =
+    Math.Abs(p2.x - p1.x) + Math.Abs(p2.y - p1.y)
