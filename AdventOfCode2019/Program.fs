@@ -17,6 +17,8 @@ let main argv =
         Day2Test.``Multiply test 1``
         Day2Test.``Multiply test 2``
         Day2Test.``Combined test``
+        
+        Day3Test.``Can parse a wire description``
     ]
     printfn "Test count: %d" tests.Length
     
