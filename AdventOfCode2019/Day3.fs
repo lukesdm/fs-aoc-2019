@@ -96,7 +96,23 @@ let test1 =
     findClosestIntersection1 wires.[0] wires.[1]
     
 // PART 2...
-type WireSegment2 = { p1: Point; p2: Point; accSteps: int }                     
+type Orientation =
+    | Horizontal
+    | Vertical
+
+type WireSegment2 =
+    { p1: Point;
+      p2: Point;
+      pathLength: int } // total path length (steps) for wire including this segment
+    member this.orientation
+        with get() =
+            if this.p1.x = this.p2.x then Vertical else Horizontal
+    member this.length
+        with get() =
+            match this.orientation with
+            | Horizontal -> Math.Abs (this.p2.x - this.p1.x)
+            | Vertical -> Math.Abs (this.p2.y - this.p1.y)
+                           
 type Wire2 = ResizeArray<WireSegment2> // supports additional entries due to segment splitting
 type Intersection = { p: Point; segmentA: WireSegment2; segmentB: WireSegment2 }
 
@@ -122,6 +138,7 @@ let checkSelfIntersection (wire: Wire2) (newSegment: WireSegment2) =
     // Note: need to consider multiple intersections, so traverse all segments
     let rec findIntersections (wireSegs: list<WireSegment2>) (newSeg: WireSegment2) (intersections) =
         if not wireSegs.IsEmpty then
+            // TODO: potential issue with using newSeg here - will have inaccurate pathLength on subsequent calls - to fix would need to pass in result of split. Shouldn't be an issue if that seg is not used in calcs
             let intersection = calcIntersection2 wireSegs.Head newSeg
             if intersection.IsSome then
                 findIntersections wireSegs.Tail newSeg (intersection.Value :: intersections)
@@ -132,28 +149,56 @@ let checkSelfIntersection (wire: Wire2) (newSegment: WireSegment2) =
     
     findIntersections (Seq.toList wire) newSegment List.empty
 
+let dist p1 p2 =
+    if p1.x = p2.x then Math.Abs (p2.y - p1.y)
+    elif p1.y = p2.y then Math.Abs (p1.x - p2.x)
+    else failwith "expected a horizontal or vertical distance"
+    
+let calcNewPathLength (segA: WireSegment2) (intersection: Intersection)  =
+    // when segA is intercepted by segB, take segBs pathlength (which will be shorter)
+    //  minus the distance along the segment from the intersection  
+    let segB = intersection.segmentB
+    let distFromEnd = dist segB.p2 intersection.p
+    segB.pathLength - distFromEnd  
+    
 let split newSegment intersections =
-    // TODO: segment split according to intersections
+    // TODO: split segment according to intersections
+    // c.x, c.y = newSeg.p1.x, newSeg.p1.Y
+    // for intersection i
+    // create a new segment
+    //   with p1 = c.x, c.y ; p2 = i.x, i.y
+    // set totalLength
+    // last seg: p1 = i.x, i.y; p2 = newSeg.p2; totalLength = 
     [newSegment]
 
 let parseWireDescription2 (input: string) =
     let regex = new Regex "(U|D|L|R)(\d+)" // grp1 = dir, grp2 = amount
     let mutable cursor: Point = {x=0; y=0}
+    let mutable pathLength = 0
     let tokens = input.Split(",")
     let segments = new Wire2 (tokens.Length) // we know it's at least as big as this
-    tokens |> Array.iteri (fun i token ->
+    tokens |> Array.iter (fun token ->
         let rmatch = regex.Match token 
-        let (dir, amt) = rmatch.Groups.[1].Value, int rmatch.Groups.[2].Value
+        let (dir, length) = rmatch.Groups.[1].Value, int rmatch.Groups.[2].Value
+        pathLength <- pathLength + length
         let newSegment =
             match dir with
-            | "U" -> { p1 = cursor; p2 = { cursor with y = (cursor.y + amt)}; accSteps = 0 }
-            | "D" -> { p1 = cursor; p2 = { cursor with y = (cursor.y - amt)}; accSteps = 0 }
-            | "R" -> { p1 = cursor; p2 = { cursor with x = (cursor.x + amt)}; accSteps = 0 }
-            | "L" -> { p1 = cursor; p2 = { cursor with x = (cursor.x - amt)}; accSteps = 0 }
+            | "U" -> { p1 = cursor; p2 = { cursor with y = (cursor.y + length)}; pathLength = pathLength }
+            | "D" -> { p1 = cursor; p2 = { cursor with y = (cursor.y - length)}; pathLength = pathLength }
+            | "R" -> { p1 = cursor; p2 = { cursor with x = (cursor.x + length)}; pathLength = pathLength }
+            | "L" -> { p1 = cursor; p2 = { cursor with x = (cursor.x - length)}; pathLength = pathLength }
             | _ -> failwith "Unexpected input"
         
         let selfIntersections = checkSelfIntersection segments newSegment 
-        segments.AddRange (if selfIntersections.IsEmpty then [newSegment] else (split newSegment selfIntersections) )
+        
+        if selfIntersections.IsEmpty then
+            segments.Add newSegment
+        else 
+            let (newSegs, newPathLength) = split newSegment selfIntersections 
+            pathLength <- newPathLength
+            segments.AddRange newSegs
+                   
         cursor <- newSegment.p2
         )
     segments
+    // TODO: another potential issue - should intersection split *both* segments? (and recalculate pathLength)
