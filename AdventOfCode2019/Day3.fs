@@ -161,15 +161,22 @@ let calcNewPathLength (segA: WireSegment2) (intersection: Intersection)  =
     let distFromEnd = dist segB.p2 intersection.p
     segB.pathLength - distFromEnd  
     
-let split newSegment intersections =
-    // TODO: split segment according to intersections
-    // c.x, c.y = newSeg.p1.x, newSeg.p1.Y
-    // for intersection i
-    // create a new segment
-    //   with p1 = c.x, c.y ; p2 = i.x, i.y
-    // set totalLength
-    // last seg: p1 = i.x, i.y; p2 = newSeg.p2; totalLength = 
-    [newSegment]
+let split origSegment intersections =
+    // Split segment according to intersections, assigning new pathlength
+    let mutable currSeg = origSegment
+    let mutable segs: list<WireSegment2> = list.Empty
+    
+    intersections |> Seq.iter ( fun intersection ->
+        let newPathLength = calcNewPathLength currSeg intersection 
+        let newSeg = { p1 = currSeg.p1; p2 = intersection.p; pathLength = newPathLength  }
+        currSeg <- newSeg
+        segs <- newSeg :: segs )
+    let finalSeg =
+        { p1 = currSeg.p2;
+          p2 = origSegment.p2;
+          pathLength = currSeg.pathLength + (dist currSeg.p2 origSegment.p2) }
+    segs <- finalSeg :: segs 
+    (List.rev segs), finalSeg.pathLength
 
 let parseWireDescription2 (input: string) =
     let regex = new Regex "(U|D|L|R)(\d+)" // grp1 = dir, grp2 = amount
