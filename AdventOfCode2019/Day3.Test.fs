@@ -11,7 +11,7 @@ let ``Can parse a wire description`` =
         { p1 = {x = 8; y= 5}; p2 = {x = 3; y= 5} }
         { p1 = {x = 3; y= 5}; p2 = {x = 3; y= 2} }
     |]
-    let actualWireSegments = parseWireDescription wireDescription
+    let actualWireSegments = parseWireDescription1 wireDescription
     assert (actualWireSegments = expectedWireSegments)
 
 let ``Can calculate distance`` =
@@ -25,12 +25,12 @@ let ``Can calculate distance`` =
     |]
     |> Array.iter ( fun t ->
         let (p, expectedDist) = t
-        let actualDist = calcDistance o p
+        let actualDist = calcDistance1 o p
         assert (expectedDist = actualDist)
         )
     
 let ``Can read input`` = 
-    let wires = readInput
+    let wires = readInput1
     let wireA, wireB = wires.[0], wires.[1] 
     assert (wireA.Length > 0)
     assert (wireB.Length > 0)
@@ -91,8 +91,8 @@ let ``calc intersection 1`` =
 // Wire 2: U7,R6,D4,L4
 // 2 intersections - (3,3) and (6,5)
 let ``Can calculate intersections`` =
-    let wireA = parseWireDescription "R8,U5,L5,D3"
-    let wireB = parseWireDescription "U7,R6,D4,L4"
+    let wireA = parseWireDescription1 "R8,U5,L5,D3"
+    let wireB = parseWireDescription1 "U7,R6,D4,L4"
     let expectedIntesections = Set [
         {x = 3; y = 3};
         {x = 6; y = 5}
@@ -101,27 +101,33 @@ let ``Can calculate intersections`` =
     assert (expectedIntesections = actualIntersections)
 
 let ``Can find distance to nearest intersection`` =
-    let wireA = parseWireDescription "R8,U5,L5,D3"
-    let wireB = parseWireDescription "U7,R6,D4,L4"
+    let wireA = parseWireDescription1 "R8,U5,L5,D3"
+    let wireB = parseWireDescription1 "U7,R6,D4,L4"
     let expected = 6
-    let actual = findClosestIntersection wireA wireB
+    let actual = findClosestIntersection1 wireA wireB
     assert (expected = actual)
 
 //Here are a few more examples:
 //R75,D30,R83,U83,L12,D49,R71,U7,L72
 //U62,R66,U55,R34,D71,R55,D58,R83 = distance 159
 let ``Can find distance to nearest intersection 2`` =
-    let wireA = parseWireDescription "R75,D30,R83,U83,L12,D49,R71,U7,L72"
-    let wireB = parseWireDescription "U62,R66,U55,R34,D71,R55,D58,R83"
+    let wireA = parseWireDescription1 "R75,D30,R83,U83,L12,D49,R71,U7,L72"
+    let wireB = parseWireDescription1 "U62,R66,U55,R34,D71,R55,D58,R83"
     let expected = 159
-    let actual = findClosestIntersection wireA wireB
+    let actual = findClosestIntersection1 wireA wireB
     assert (expected = actual)
     
 //R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51
 //U98,R91,D20,R16,D67,R40,U7,R15,U6,R7 = distance 135
 let ``Can find distance to nearest intersection 3`` =
-    let wireA = parseWireDescription "R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51"
-    let wireB = parseWireDescription "U98,R91,D20,R16,D67,R40,U7,R15,U6,R7"
+    let wireA = parseWireDescription1 "R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51"
+    let wireB = parseWireDescription1 "U98,R91,D20,R16,D67,R40,U7,R15,U6,R7"
     let expected = 135
-    let actual = findClosestIntersection wireA wireB
+    let actual = findClosestIntersection1 wireA wireB
     assert (expected = actual)
+    
+// PART 2...
+
+// Self-intersecting.
+let siTestWire1Desc = "R3,U2,L1,D4"
+let siTestWire2Desc = "D1,R4,U2,L3"
