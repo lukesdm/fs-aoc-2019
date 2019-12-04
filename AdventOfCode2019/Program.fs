@@ -36,9 +36,12 @@ let main argv =
     // TODO: Day3 Part 2
     
     // Day 4
-    Day4.tests
-    let d4p1 = Day4.calc
+    printf "%s" Day4.hello
+    let d4p1 = Day4.calc1
     printfn "Day 4 part 1 result: %d" d4p1 // 1660 verified as correct
+
+    let d4p2 = Day4.calc2
+    printfn "Day 4 part 2 result: %d" d4p2 // 1135 verified as correct
     
     // if we get here, everything is OK - all tests passed (no assertions failed).  
     0

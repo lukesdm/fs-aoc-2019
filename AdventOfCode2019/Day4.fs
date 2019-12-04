@@ -1,6 +1,7 @@
 ﻿module AdventOfCode2019.Day4
 open System
 
+let hello = "just need a reference to trigger the code in here."
 // The Elves had written the password on a sticky note, but someone threw it out.
 //However, they do remember a few key facts about the password:
 //It is a six-digit number.
@@ -11,23 +12,12 @@ open System
 let inRange n lower upper =
     lower <= n && n <= upper
     
-//let hasDouble (n: int) =
-//    let digits = string n
-//    digits |> Seq.pairwise
-//    |> Seq.filter ( fun a -> fst a = snd a )
-//    |> Seq.isEmpty |> not
-//
-//let digitsDontDecrease (n: int) =
-//    let digits = string n
-//    digits |> Seq.pairwise
-//    |> Seq.filter ( fun a -> snd a >= fst a )
-//    |> Seq.isEmpty |> not
 let toDigits (n: int) =
     // TODO: make this less ugly?
     string n |> Seq.map (fun c -> Int32.Parse (c.ToString ()))
     |> Seq.toArray
 
-let checkDigits (n: int) =
+let checkDigits1 (n: int) =
     let digits = toDigits n
     let mutable hasDouble = false
     let mutable decreases = false
@@ -37,42 +27,99 @@ let checkDigits (n: int) =
         if curr < prev then decreases <- true)
     hasDouble && not decreases
     
-let checkNumber n lower upper =
-    inRange n lower upper
-    && checkDigits n
+//let checkNumber n lower upper =
+//    inRange n lower upper
+//    && checkDigits1 n
 
 // 111111 meets these criteria (double 11, never decreases)
 let test1 =
     let n = 111111
     let expected = true
-    let actual = checkNumber n 0 999999
+    let actual = checkDigits1 n
     assert (actual = expected) 
 
 //223450 does not meet these criteria (decreasing pair of digits 50).
 let test2 =
     let n = 223450
     let expected = false
-    let actual = checkNumber n 0 999999
+    let actual = checkDigits1 n
     assert (actual = expected) 
 
 // 123789 does not meet these criteria (no double)
 let test3 =
     let n = 123789
     let expected = false
-    let actual = checkNumber n 0 999999
+    let actual = checkDigits1 n
     assert (actual = expected)
-    
-let tests =
-    test1
-    test2
-    test3
 
 // Your puzzle input is 172851-675869
-let calc =
+let calc1 =
     let lower = 172851
     let upper = 675869
     let mutable validCount = 0
     seq {lower..upper}
-    |> Seq.iter (fun n -> if checkDigits n then validCount <- validCount + 1)
+    |> Seq.iter (fun n -> if checkDigits1 n then validCount <- validCount + 1)
     validCount
  
+// PART 2:
+//the two adjacent matching digits are not part of a larger group of matching digits
+let checkDigits2 (n: int) =
+    let digits = toDigits n
+    
+    let mutable decreases = false
+    
+    // Note: this data structure + mechanism wouldn't work for 221222 (the triple would hide the double)
+    // BUT it's not an issue because it's not valid anyway - the number can't decrease!
+    let digitReps: int[] = Array.zeroCreate 10 // reps for digits 0 to 9
+    
+    digits |> Seq.pairwise
+    |> Seq.iter (fun (prev, curr) ->
+        if curr = prev then
+            digitReps.[curr] <- digitReps.[curr] + 1 
+        if curr < prev then decreases <- true)
+    (Seq.exists (fun r -> r = 1) digitReps) && not decreases
+
+let test1a =
+    let n = 111111
+    let expected = false
+    let actual = checkDigits2 n
+    assert (actual = expected) 
+
+let test2a =
+    let n = 223450
+    let expected = false
+    let actual = checkDigits2 n
+    assert (actual = expected) 
+
+let test3a =
+    let n = 123789
+    let expected = false
+    let actual = checkDigits2 n
+    assert (actual = expected)
+    
+//112233 meets these criteria because the digits never decrease and all repeated digits are exactly two digits long.
+let test4 =
+    let n = 112233
+    let expected = true
+    let actual = checkDigits2 n
+    assert (actual = expected)
+//123444 no longer meets the criteria (the repeated 44 is part of a larger group of 444).
+let test5 =
+    let n = 123444
+    let expected = false
+    let actual = checkDigits2 n
+    assert (actual = expected)
+//111122 meets the criteria (even though 1 is repeated more than twice, it still contains a double 22).
+let test6 =
+    let n = 111122
+    let expected = true
+    let actual = checkDigits2 n
+    assert (actual = expected)
+
+let calc2 =
+    let lower = 172851
+    let upper = 675869
+    let mutable validCount = 0
+    seq {lower..upper}
+    |> Seq.iter (fun n -> if checkDigits2 n then validCount <- validCount + 1)
+    validCount

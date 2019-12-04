@@ -98,29 +98,62 @@ let test1 =
 // PART 2...
 type WireSegment2 = { p1: Point; p2: Point; accSteps: int }                     
 type Wire2 = ResizeArray<WireSegment2> // supports additional entries due to segment splitting
-type Intersection = { p: Point; segA: WireSegment2; segB: WireSegment2 }
-// self intersections
-// TODO: Come back to this.
-//let checkSelfIntersection (wire: Wire2) (newSegment: WireSegment2) = // Note: need to consider multiple intersections.
-//    let emptyList = List.empty
-//    //wire |> Seq.fold (fun seg intersections -> intersections)
-//let parseWireDescription2 (input: string) =
-//    let regex = new Regex "(U|D|L|R)(\d+)" // grp1 = dir, grp2 = amount
-//    let mutable cursor: Point = {x=0; y=0}
-//    let tokens = input.Split(",")
-//    let segments = new Wire2 (tokens.Length) // we know it's at least as big as this
-//    tokens |> Array.iteri (fun i token ->
-//        let rmatch = regex.Match token 
-//        let (dir, amt) = rmatch.Groups.[1].Value, int rmatch.Groups.[2].Value
-//        let newSegment =
-//            match dir with
-//            | "U" -> { p1 = cursor; p2 = { cursor with y = (cursor.y + amt)}; accSteps = 0 }
-//            | "D" -> { p1 = cursor; p2 = { cursor with y = (cursor.y - amt)}; accSteps = 0 }
-//            | "R" -> { p1 = cursor; p2 = { cursor with x = (cursor.x + amt)}; accSteps = 0 }
-//            | "L" -> { p1 = cursor; p2 = { cursor with x = (cursor.x - amt)}; accSteps = 0 }
-//            | _ -> failwith "Unexpected input"
-//        (intersectsSelf, intersection) = checkSelfIntersection 
-//        segments.AddRange (if not (intersectsSelf newSegment) then [newSegment] else (split newSegment intersection) )
-//        cursor <- newSegment.p2
-//        )
-//    segments
+type Intersection = { p: Point; segmentA: WireSegment2; segmentB: WireSegment2 }
+
+let calcIntersection2 (segA: WireSegment2) (segB: WireSegment2) = 
+    let intersects =
+            (isBetween segB.p1.x segA.p1.x segA.p2.x
+            && isBetween segB.p2.x segA.p1.x segA.p2.x
+            && isBetween segA.p1.y segB.p1.y segB.p2.y
+            && isBetween segA.p2.y segB.p1.y segB.p2.y)
+            ||
+            (isBetween segB.p1.y segA.p1.y segA.p2.y
+            && isBetween segB.p2.y segA.p1.y segA.p2.y
+            && isBetween segA.p1.x segB.p1.x segB.p2.x
+            && isBetween segA.p2.x segB.p1.x segB.p2.x)
+
+    if intersects then
+        if segA.p1.y = segA.p2.y
+        then Some { p = {x = segB.p1.x; y = segA.p1.y}; segmentA = segA; segmentB = segB }
+        else Some { p = {x = segA.p1.x; y = segB.p1.y}; segmentA = segA; segmentB = segB }
+    else None
+
+let checkSelfIntersection (wire: Wire2) (newSegment: WireSegment2) =
+    // Note: need to consider multiple intersections, so traverse all segments
+    let rec findIntersections (wireSegs: list<WireSegment2>) (newSeg: WireSegment2) (intersections) =
+        if not wireSegs.IsEmpty then
+            let intersection = calcIntersection2 wireSegs.Head newSeg
+            if intersection.IsSome then
+                findIntersections wireSegs.Tail newSeg (intersection.Value :: intersections)
+            else
+                findIntersections wireSegs.Tail newSeg intersections
+        else
+            intersections
+    
+    findIntersections (Seq.toList wire) newSegment List.empty
+
+let split newSegment intersections =
+    // TODO: segment split according to intersections
+    [newSegment]
+
+let parseWireDescription2 (input: string) =
+    let regex = new Regex "(U|D|L|R)(\d+)" // grp1 = dir, grp2 = amount
+    let mutable cursor: Point = {x=0; y=0}
+    let tokens = input.Split(",")
+    let segments = new Wire2 (tokens.Length) // we know it's at least as big as this
+    tokens |> Array.iteri (fun i token ->
+        let rmatch = regex.Match token 
+        let (dir, amt) = rmatch.Groups.[1].Value, int rmatch.Groups.[2].Value
+        let newSegment =
+            match dir with
+            | "U" -> { p1 = cursor; p2 = { cursor with y = (cursor.y + amt)}; accSteps = 0 }
+            | "D" -> { p1 = cursor; p2 = { cursor with y = (cursor.y - amt)}; accSteps = 0 }
+            | "R" -> { p1 = cursor; p2 = { cursor with x = (cursor.x + amt)}; accSteps = 0 }
+            | "L" -> { p1 = cursor; p2 = { cursor with x = (cursor.x - amt)}; accSteps = 0 }
+            | _ -> failwith "Unexpected input"
+        
+        let selfIntersections = checkSelfIntersection segments newSegment 
+        segments.AddRange (if selfIntersections.IsEmpty then [newSegment] else (split newSegment selfIntersections) )
+        cursor <- newSegment.p2
+        )
+    segments
