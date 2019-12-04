@@ -1,9 +1,6 @@
 ﻿open System
 
 open AdventOfCode2019
-open AdventOfCode2019.Day1
-open AdventOfCode2019.Day1Test
-open AdventOfCode2019.Day2
 
 [<EntryPoint>]
 let main argv =
@@ -35,6 +32,13 @@ let main argv =
     
     let d3p1 = Day3.test1
     printfn "Day 3 part 1 result: %d" d3p1 // 1211 verified as correct
+    
+    // TODO: Day3 Part 2
+    
+    // Day 4
+    Day4.tests
+    let d4p1 = Day4.calc
+    printfn "Day 4 part 1 result: %d" d4p1 // 1660 verified as correct
     
     // if we get here, everything is OK - all tests passed (no assertions failed).  
     0
