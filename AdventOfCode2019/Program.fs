@@ -33,6 +33,8 @@ let main argv =
     let d2p2 = Day2.test
     printfn "Day 2 part 2 result: %d (output was %d)" (100 * d2p2.Noun + d2p2.Verb) d2p2.Output
     
+    let d3p1 = Day3.test
+    printfn "Day 3 part 1 result: %d" d3p1 // 1211 verified as correct
     
     // if we get here, everything is OK - all tests passed (no assertions failed).  
     0

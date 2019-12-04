@@ -68,7 +68,6 @@ let calcIntersection (segA: WireSegment) (segB: WireSegment) =
     
 let calcIntersections (wireA: Wire) (wireB: Wire): Set<Point> =
     let mutable intersections = Set.empty
-    //intersections <- intersections.Add {x = 0; y = 0}
     wireB |> Array.iter (fun segB ->
         wireA |> Array.iter (fun segA ->
             if intersects segA segB then
@@ -79,6 +78,9 @@ let calcIntersections (wireA: Wire) (wireB: Wire): Set<Point> =
     intersections.Remove {x = 0; y = 0}
 
 let findClosestIntersection (wireA : Wire) (wireB : Wire) =
+    // It works for the sample input but it's pretty inefficient.
+    // Simple way to improve it - pass a callback into the parser for wireB
+    // and do the intersection calc and distance, keeping track of the closest.
     let closest =
         calcIntersections wireA wireB
         |> Set.map (calcDistance {x = 0; y = 0})
@@ -88,3 +90,7 @@ let findClosestIntersection (wireA : Wire) (wireB : Wire) =
 let readInput =
     File.ReadAllLines "day3-input.txt"
     |> Array.map parseWireDescription
+    
+let test =
+    let wires = readInput
+    findClosestIntersection wires.[0] wires.[1]
