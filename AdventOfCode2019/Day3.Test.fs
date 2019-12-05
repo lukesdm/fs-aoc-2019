@@ -133,6 +133,12 @@ let siTestWire1Desc = "R3,U2,L1,D4"
 let siTestWire2Desc = "D1,R4,U2,L3"
 
 let ``Part 2: parse self intersecting, single`` =
-    let wire = Day3.parseWireDescription2 siTestWire1Desc
+    let wire = parseWireDescription2 siTestWire1Desc
     assert (wire.Count = 5) 
-    
+
+let ``Part 2: calc wire intersections, simple`` =
+    let wireA = parseWireDescription2 siTestWire1Desc
+    let wireB = parseWireDescription2 siTestWire2Desc
+    let actual = findClosestIntersection2 wireA wireB 
+    let expected = 6 // (-1, 2) i think?
+    assert (expected = actual)

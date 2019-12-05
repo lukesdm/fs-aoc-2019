@@ -134,18 +134,19 @@ let calcIntersection2 (segA: WireSegment2) (segB: WireSegment2) =
         else Some { p = {x = segA.p1.x; y = segB.p1.y}; segmentA = segA; segmentB = segB }
     else None
 
+let rec findIntersections (wireSegs: list<WireSegment2>) (newSeg: WireSegment2) (intersections) =
+    if not wireSegs.IsEmpty then
+        // TODO: potential issue with using newSeg here - will have inaccurate pathLength on subsequent calls - to fix would need to pass in result of split. Shouldn't be an issue if that seg is not used in calcs
+        let intersection = calcIntersection2 newSeg wireSegs.Head
+        if intersection.IsSome then
+            findIntersections wireSegs.Tail newSeg (intersection.Value :: intersections)
+        else
+            findIntersections wireSegs.Tail newSeg intersections
+    else
+        intersections
+
 let checkSelfIntersection (wire: Wire2) (newSegment: WireSegment2) =
     // Note: need to consider multiple intersections, so traverse all segments
-    let rec findIntersections (wireSegs: list<WireSegment2>) (newSeg: WireSegment2) (intersections) =
-        if not wireSegs.IsEmpty then
-            // TODO: potential issue with using newSeg here - will have inaccurate pathLength on subsequent calls - to fix would need to pass in result of split. Shouldn't be an issue if that seg is not used in calcs
-            let intersection = calcIntersection2 newSeg wireSegs.Head
-            if intersection.IsSome then
-                findIntersections wireSegs.Tail newSeg (intersection.Value :: intersections)
-            else
-                findIntersections wireSegs.Tail newSeg intersections
-        else
-            intersections
     
     // hacky way to remove last segment so it's not counted as an intersection 
     let input =
@@ -216,3 +217,24 @@ let parseWireDescription2 (input: string) =
         )
     segments
     // TODO: another potential issue - should intersection split *both* segments? (and recalculate pathLength)
+    
+let calcIntersections2 (wireA: Wire2) (wireB: Wire2) =
+    let intersections = new ResizeArray<Intersection>()
+    wireA |> Seq.iter (fun segA ->
+        intersections.AddRange (findIntersections (Seq.toList wireB) segA list.Empty)
+        )
+    intersections.RemoveAt(0) // (0,0)
+    intersections
+
+// sum of wire pathlength to intersection
+let calcDistance2 (intersection: Intersection) =
+    let segA, segB = intersection.segmentA, intersection.segmentB
+    let plA = segA.pathLength - (dist segA.p2 intersection.p)
+    let plB = segB.pathLength - (dist segB.p2 intersection.p)
+    plA + plB
+let findClosestIntersection2 (wireA: Wire2) (wireB: Wire2) =
+    let closest =
+        calcIntersections2 wireA wireB
+        |> Seq.map calcDistance2
+        |> Seq.min
+    closest
