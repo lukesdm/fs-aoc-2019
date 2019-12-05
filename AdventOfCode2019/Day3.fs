@@ -139,7 +139,7 @@ let checkSelfIntersection (wire: Wire2) (newSegment: WireSegment2) =
     let rec findIntersections (wireSegs: list<WireSegment2>) (newSeg: WireSegment2) (intersections) =
         if not wireSegs.IsEmpty then
             // TODO: potential issue with using newSeg here - will have inaccurate pathLength on subsequent calls - to fix would need to pass in result of split. Shouldn't be an issue if that seg is not used in calcs
-            let intersection = calcIntersection2 wireSegs.Head newSeg
+            let intersection = calcIntersection2 newSeg wireSegs.Head
             if intersection.IsSome then
                 findIntersections wireSegs.Tail newSeg (intersection.Value :: intersections)
             else
