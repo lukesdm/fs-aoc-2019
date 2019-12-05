@@ -147,7 +147,14 @@ let checkSelfIntersection (wire: Wire2) (newSegment: WireSegment2) =
         else
             intersections
     
-    findIntersections (Seq.toList wire) newSegment List.empty
+    // hacky way to remove last segment so it's not counted as an intersection 
+    let input =
+        if wire.Count > 0 then
+            ((Seq.toList wire |> List.rev).Tail |> List.rev)
+        else
+            list.Empty
+    
+    findIntersections input newSegment List.empty
 
 let dist p1 p2 =
     if p1.x = p2.x then Math.Abs (p2.y - p1.y)

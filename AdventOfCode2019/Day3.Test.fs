@@ -131,3 +131,8 @@ let ``Can find distance to nearest intersection 3`` =
 // Self-intersecting.
 let siTestWire1Desc = "R3,U2,L1,D4"
 let siTestWire2Desc = "D1,R4,U2,L3"
+
+let ``Part 2: parse self intersecting, single`` =
+    let wire = Day3.parseWireDescription2 siTestWire1Desc
+    assert (wire.Count = 5) 
+    
