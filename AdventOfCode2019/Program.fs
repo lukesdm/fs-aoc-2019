@@ -33,7 +33,8 @@ let main argv =
     let d3p1 = Day3.test1
     printfn "Day 3 part 1 result: %d" d3p1 // 1211 verified as correct
     
-    // TODO: Day3 Part 2
+    let d3p2 = Day3.test2
+    printfn "Day 3 part 2 result: %d" d3p2
     
     // Day 4
     printf "%s" Day4.hello

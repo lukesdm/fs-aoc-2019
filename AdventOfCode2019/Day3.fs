@@ -238,3 +238,9 @@ let findClosestIntersection2 (wireA: Wire2) (wireB: Wire2) =
         |> Seq.map calcDistance2
         |> Seq.min
     closest
+    
+let test2 =
+    let wires =
+        File.ReadAllLines "day3-input.txt"
+        |> Array.map parseWireDescription2
+    findClosestIntersection2 wires.[0] wires.[1]
