@@ -132,16 +132,31 @@ let ``Can find distance to nearest intersection 3`` =
 let siTestWire1Desc = "R3,U2,L1,D4"
 let siTestWire2Desc = "D1,R4,U2,L3"
 
-let ``Part 2: parse self intersecting, single`` =
-    let wire = parseWireDescription2 siTestWire1Desc
-    assert (wire.Count = 5) 
-
+let ``Part 2: can parse self intersecting, single`` =
+    let expected = new Wire2 ([
+        { p1 = {x=0; y=0}; p2 = {x=3; y=0}; pathLength = 3 ; split = false }
+        { p1 = {x=3; y=0}; p2 = {x=3; y=2}; pathLength = 5 ; split = false }
+        { p1 = {x=3; y=2}; p2 = {x=2; y=2}; pathLength = 6 ; split = false }
+        { p1 = {x=2; y=2}; p2 = {x=2; y=0}; pathLength = 2 ; split = true }
+        { p1 = {x=2; y=0}; p2 = {x=2; y= -2}; pathLength = 4 ; split = true }
+    ])
+    let actual = parseWireDescription2 siTestWire1Desc
+    assert (expected.ToArray() = actual.ToArray()) 
+    
 let ``Part 2: calc wire intersections, simple`` =
     let wireA = parseWireDescription2 siTestWire1Desc
     let wireB = parseWireDescription2 siTestWire2Desc
-    let actual = findClosestIntersection2 wireA wireB 
     let expected = 6 // (-1, 2) i think?
+    let actual = findClosestIntersection2 wireA wireB 
     assert (expected = actual)
+    
+let ``Part 2: wires cross after self intersection `` =
+    let wireA = parseWireDescription2 siTestWire1Desc
+    let wireB = parseWireDescription2 "D3,R4,U4,L3" // "D1,R4,U2,L3"
+    let expected = 16
+    let actual = findClosestIntersection2 wireA wireB
+    assert (expected = actual)
+
 
 
 let ``Part 2: example 1`` =

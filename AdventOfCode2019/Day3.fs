@@ -1,5 +1,6 @@
 ﻿module AdventOfCode2019.Day3
 open System
+open System.Collections.Generic
 open System.IO
 open System.Text.RegularExpressions
 
@@ -186,36 +187,39 @@ let split origSegment intersections =
           split = true
           pathLength = currSeg.pathLength + (dist currSeg.p2 origSegment.p2) }
     segs <- finalSeg :: segs 
-    (List.rev segs), finalSeg.pathLength
+    //(List.rev segs), finalSeg.pathLength
+    List.rev segs
 
 let parseWireDescription2 (input: string) =
     let regex = new Regex "(U|D|L|R)(\d+)" // grp1 = dir, grp2 = amount
-    let mutable cursor: Point = {x=0; y=0}
-    let mutable pathLength = 0
+    //let mutable cursor: Point = {x=0; y=0}
+    //let mutable pathLength = 0
+    let mutable prevSeg : WireSegment2 = {p1 = {x=0; y=0}; p2={x=0; y=0;}; pathLength = 0;  split = false}
     let tokens = input.Split(",")
     let segments = new Wire2 (tokens.Length) // we know it's at least as big as this
     tokens |> Array.iter (fun token ->
         let rmatch = regex.Match token 
         let (dir, length) = rmatch.Groups.[1].Value, int rmatch.Groups.[2].Value
-        pathLength <- pathLength + length
+        let pathLength = prevSeg.pathLength + length
         let newSegment =
             match dir with
-            | "U" -> { p1 = cursor; p2 = { cursor with y = (cursor.y + length)}; pathLength = pathLength; split = false }
-            | "D" -> { p1 = cursor; p2 = { cursor with y = (cursor.y - length)}; pathLength = pathLength; split = false }
-            | "R" -> { p1 = cursor; p2 = { cursor with x = (cursor.x + length)}; pathLength = pathLength; split = false }
-            | "L" -> { p1 = cursor; p2 = { cursor with x = (cursor.x - length)}; pathLength = pathLength; split = false }
+            | "U" -> { p1 = prevSeg.p2; p2 = { prevSeg.p2 with y = (prevSeg.p2.y + length)}; pathLength = pathLength; split = false }
+            | "D" -> { p1 = prevSeg.p2; p2 = { prevSeg.p2 with y = (prevSeg.p2.y - length)}; pathLength = pathLength; split = false }
+            | "R" -> { p1 = prevSeg.p2; p2 = { prevSeg.p2 with x = (prevSeg.p2.x + length)}; pathLength = pathLength; split = false }
+            | "L" -> { p1 = prevSeg.p2; p2 = { prevSeg.p2 with x = (prevSeg.p2.x - length)}; pathLength = pathLength; split = false }
             | _ -> failwith "Unexpected input"
         
         let selfIntersections = checkSelfIntersection segments newSegment 
         
-        if selfIntersections.IsEmpty then
-            segments.Add newSegment
-        else 
-            let (newSegs, newPathLength) = split newSegment selfIntersections 
-            pathLength <- newPathLength
-            segments.AddRange newSegs
-                   
-        cursor <- newSegment.p2
+        let newSegs =
+            if selfIntersections.IsEmpty then
+                [newSegment]
+            else
+                split newSegment selfIntersections
+        
+        segments.AddRange newSegs
+        //callback newSegs
+        prevSeg <- (List.rev newSegs).Head
         )
     segments
     // TODO: another potential issue - should intersection split *both* segments? (and recalculate pathLength)
