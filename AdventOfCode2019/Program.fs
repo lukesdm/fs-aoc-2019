@@ -33,7 +33,7 @@ let main argv =
     let d3p1 = Day3.test1
     printfn "Day 3 part 1 result: %d" d3p1 // 1211 verified as correct
     
-    let d3p2 = Day3.test2
+    let _, d3p2 = Day3.test2
     printfn "Day 3 part 2 result: %d" d3p2
     
     // Day 4
