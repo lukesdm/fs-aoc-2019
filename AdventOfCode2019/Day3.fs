@@ -238,33 +238,26 @@ let calcIntersections2 (wireA: Wire2) (wireB: Wire2) =
 
 // sum of wire pathlength to intersection
 let calcDistance2 (intersection: Intersection) =
-    
     let pathLengthForWire seg p =
-//        if seg.plEnd > seg.plStart then
-//            seg.plEnd - (dist seg.p2 p)
-//        elif seg.plStart > seg.plEnd then
-//            seg.plStart + (dist seg.p2 p)
-//        else
-//            failwith "unexpected corner case"
         seg.plStart + (dist seg.p1 p)
-//        if seg.plEnd > seg.plStart then
-//            seg.plEnd - (dist seg.p2 p)
-//        elif seg.plStart > seg.plEnd then
-//            seg.plStart + (dist seg.p2 p)
-//        else
-//            failwith "unexpected corner case"
     
     let plA = pathLengthForWire intersection.segmentA intersection.p
     let plB = pathLengthForWire intersection.segmentB intersection.p
-    
     plA + plB
+    
 let findClosestIntersection2 (wireA: Wire2) (wireB: Wire2) =
     let closest =
         calcIntersections2 wireA wireB
         |> Seq.minBy calcDistance2
     (closest, calcDistance2 closest)
     
-let getBounds (wire: Wire2) =
+// for viz
+ 
+// x,y coords of lower left and top right corners 
+type Rect = ((int*int) * (int*int))
+
+let getBounds wire : Rect =
+    // TODO: figure out how to extract calculated min to avoid reevaluating afterwards
     let fminX seg = Math.Min (seg.p1.x, seg.p2.x)
     let fminY seg = Math.Min (seg.p1.y, seg.p2.y)
     let fmaxX seg = Math.Max (seg.p1.x, seg.p2.x)
@@ -273,13 +266,28 @@ let getBounds (wire: Wire2) =
     let minY = Seq.minBy fminY wire
     let maxX = Seq.maxBy fmaxX wire
     let maxY = Seq.maxBy fmaxY wire
-    (fminX minX, fminY minY, fmaxX maxX, fmaxY maxY)
+    (fminX minX, fminY minY), (fmaxX maxX, fmaxY maxY)
+
+// for viz - gets scale and offsets required to fit wire onto canvas
+let getTransform srcRect destRect =
+    // return a scale and a shift
+    // o = origin, c = top-right corner
+    let (ox1, oy1), (cx1, cy1) = srcRect
+    let (ox2, oy2), (cx2, cy2) = destRect
+    let w1, h1 = cx1-ox1, cy1-oy1
+    let w2, h2 = cx2-ox2, cy2-oy2
+    let scaleX, scaleY = float w2 / w1, float h2 / h1
+    let offsetX, offsetY = float ox2-ox1, float oy2-oy1
+    (scaleX, scaleY), (offsetX, offsetY)
+    
 let test2 =
-    let callback: SegsAddedCallback =
-        fun segs -> printfn "Seg count: %d" (List.length segs)
+    let callback: option<SegsAddedCallback> = None
+//        Some (fun segs -> printfn "Seg count: %d" (List.length segs))
     
     let wires =
         File.ReadAllLines "day3-input.txt"
-        |> Array.map (fun desc -> parseWireDescription2 desc (Some callback)) 
+        |> Array.map (fun desc -> parseWireDescription2 desc callback) 
      
+    let bounds = getBounds (Seq.append (wires.[0] :> seq<WireSegment2>) (wires.[1] :> seq<WireSegment2>))
+    
     findClosestIntersection2 wires.[0] wires.[1] 

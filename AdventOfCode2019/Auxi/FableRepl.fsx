@@ -143,6 +143,33 @@ let parseWireDescription2 (input: string) (segsAddedCallback: option<SegsAddedCa
         )
     segments
 
+// x,y coords of lower left and top right corners 
+type Rect = ((int*int) * (int*int))
+
+let getBounds wire : Rect =
+    // TODO: figure out how to extract calculated min to avoid reevaluating afterwards
+    let fminX seg = Math.Min (seg.p1.x, seg.p2.x)
+    let fminY seg = Math.Min (seg.p1.y, seg.p2.y)
+    let fmaxX seg = Math.Max (seg.p1.x, seg.p2.x)
+    let fmaxY seg = Math.Max (seg.p1.y, seg.p2.y)
+    let minX = Seq.minBy fminX wire
+    let minY = Seq.minBy fminY wire
+    let maxX = Seq.maxBy fmaxX wire
+    let maxY = Seq.maxBy fmaxY wire
+    (fminX minX, fminY minY), (fmaxX maxX, fmaxY maxY)
+
+// for viz - gets scale and offsets required to fit wire onto canvas
+let getTransform srcRect destRect =
+    // return a scale and a shift
+    // o = origin, c = top-right corner
+    let (ox1, oy1), (cx1, cy1) = srcRect
+    let (ox2, oy2), (cx2, cy2) = destRect
+    let w1, h1 = cx1-ox1, cy1-oy1
+    let w2, h2 = cx2-ox2, cy2-oy2
+    let scaleX, scaleY = float w2 / w1, float h2 / h1
+    let offsetX, offsetY = float ox2-ox1, float oy2-oy1
+    (scaleX, scaleY), (offsetX, offsetY)
+
 let drawLine (ctx: CanvasRenderingContext2D) style (x1,y1) (x2,y2) =
     ctx.strokeStyle <- style
     ctx.beginPath ()
@@ -161,12 +188,22 @@ let init() =
     let a = !^"rgba(200, 0, 0, 0.7)"
     let b = !^"rgba(0, 0, 200, 0.7)"
     
-    //ctx.scale (0.3, 0.3)
+    //ctx.scale (0.5, 0.5)
+
+    // hardcode for now
+    // For real input = ((-4662, -4556), (9284, 7720))
+    // For test input starting R75 = ((0, -30), (217, 53))
+    let wireRect = ((0., -30.), (217., 53.))
     
-    let shiftX = 100.
-    let shiftY = 100.
-    let scaleX = 0.5
-    let scaleY = 0.5
+    //let canvasRect = ((0.,0.),(canvas.width, canvas.height))
+    // TODO: Fix this - scaling and flip
+    let canvasRect = ((10.,10.),(canvas.width-10., canvas.height-10.))
+    let (scaleX, scaleY), (shiftX, shiftY) = getTransform wireRect canvasRect
+    
+    // let shiftX = 100.
+    // let shiftY = 100.
+    // let scaleX = 0.5
+    // let scaleY = 0.5
 
     let drawSeg seg style = 
         drawLine ctx style ((float seg.p1.x + shiftX) * scaleX, (float seg.p1.y + shiftY) * scaleY) ((float seg.p2.x + shiftX) * scaleX, (float seg.p2.y + shiftY) * scaleY)
@@ -181,6 +218,8 @@ let init() =
 
     let wireA = parseWireDescription2 "R75,D30,R83,U83,L12,D49,R71,U7,L72" (Some segsAddedCallbackA)
     let wireB = parseWireDescription2 "U62,R66,U55,R34,D71,R55,D58,R83" (Some segsAddedCallbackB)
+    
+    printf "canvas w=%A h=%A" ctx.canvas.width ctx.canvas.height
 
     ()
     //drawLine ctx a (0,0) (50,50)

@@ -171,6 +171,7 @@ let ``Part 2: example 2`` =
     let wireB = parseWireDescription2 "U62,R66,U55,R34,D71,R55,D58,R83" None
     let expected = 610
     let _, actual = findClosestIntersection2 wireA wireB
+    let bounds = getBounds (Seq.append (wireA :> seq<WireSegment2>) (wireA :> seq<WireSegment2>))
     assert (expected = actual)
 
 let ``Part 2: example 3`` =

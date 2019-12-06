@@ -23,7 +23,7 @@
         <Compile Include="Day3.Test.fs" />
         <Compile Include="Day4.fs" />
         <Compile Include="Program.fs" />
-        <Content Include="Auxi\FableRepl.fs" />
+        <Content Include="Auxi\FableRepl.fsx" />
     </ItemGroup>
 
 </Project>
