@@ -6,6 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="Shared.fs" />
         <Compile Include="Day1.fs" />
         <Content Include="day1-input.txt">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -22,8 +23,12 @@
         <Compile Include="Day3.fs" />
         <Compile Include="Day3.Test.fs" />
         <Compile Include="Day4.fs" />
-        <Compile Include="Program.fs" />
+        <Compile Include="Day5.fs" />
         <Content Include="Auxi\FableRepl.fsx" />
+        <Content Include="day5-input.txt">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Compile Include="Program.fs" />
     </ItemGroup>
 
 </Project>

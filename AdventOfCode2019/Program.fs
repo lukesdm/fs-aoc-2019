@@ -44,5 +44,7 @@ let main argv =
     let d4p2 = Day4.calc2
     printfn "Day 4 part 2 result: %d" d4p2 // 1135 verified as correct
     
+    printf "%s" Day5.hello
+    
     // if we get here, everything is OK - all tests passed (no assertions failed).  
     0

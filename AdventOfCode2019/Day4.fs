@@ -1,5 +1,6 @@
 ﻿module AdventOfCode2019.Day4
 open System
+open Shared
 
 let hello = "just need a reference to trigger the code in here."
 // The Elves had written the password on a sticky note, but someone threw it out.
@@ -11,11 +12,6 @@ let hello = "just need a reference to trigger the code in here."
 
 let inRange n lower upper =
     lower <= n && n <= upper
-    
-let toDigits (n: int) =
-    // TODO: make this less ugly?
-    string n |> Seq.map (fun c -> Int32.Parse (c.ToString ()))
-    |> Seq.toArray
 
 let checkDigits1 (n: int) =
     let digits = toDigits n
@@ -27,10 +23,6 @@ let checkDigits1 (n: int) =
         if curr < prev then decreases <- true)
     hasDouble && not decreases
     
-//let checkNumber n lower upper =
-//    inRange n lower upper
-//    && checkDigits1 n
-
 // 111111 meets these criteria (double 11, never decreases)
 let test1 =
     let n = 111111
