@@ -103,6 +103,7 @@ type Orientation =
 type WireSegment2 =
     { p1: Point;
       p2: Point;
+      split: bool // for debugging 
       pathLength: int } // total path length (steps) for wire including this segment
     member this.orientation
         with get() =
@@ -176,12 +177,13 @@ let split origSegment intersections =
     
     intersections |> Seq.iter ( fun intersection ->
         let newPathLength = calcNewPathLength currSeg intersection 
-        let newSeg = { p1 = currSeg.p1; p2 = intersection.p; pathLength = newPathLength  }
+        let newSeg = { p1 = currSeg.p1; p2 = intersection.p; pathLength = newPathLength; split = true  }
         currSeg <- newSeg
         segs <- newSeg :: segs )
     let finalSeg =
         { p1 = currSeg.p2;
           p2 = origSegment.p2;
+          split = true
           pathLength = currSeg.pathLength + (dist currSeg.p2 origSegment.p2) }
     segs <- finalSeg :: segs 
     (List.rev segs), finalSeg.pathLength
@@ -198,10 +200,10 @@ let parseWireDescription2 (input: string) =
         pathLength <- pathLength + length
         let newSegment =
             match dir with
-            | "U" -> { p1 = cursor; p2 = { cursor with y = (cursor.y + length)}; pathLength = pathLength }
-            | "D" -> { p1 = cursor; p2 = { cursor with y = (cursor.y - length)}; pathLength = pathLength }
-            | "R" -> { p1 = cursor; p2 = { cursor with x = (cursor.x + length)}; pathLength = pathLength }
-            | "L" -> { p1 = cursor; p2 = { cursor with x = (cursor.x - length)}; pathLength = pathLength }
+            | "U" -> { p1 = cursor; p2 = { cursor with y = (cursor.y + length)}; pathLength = pathLength; split = false }
+            | "D" -> { p1 = cursor; p2 = { cursor with y = (cursor.y - length)}; pathLength = pathLength; split = false }
+            | "R" -> { p1 = cursor; p2 = { cursor with x = (cursor.x + length)}; pathLength = pathLength; split = false }
+            | "L" -> { p1 = cursor; p2 = { cursor with x = (cursor.x - length)}; pathLength = pathLength; split = false }
             | _ -> failwith "Unexpected input"
         
         let selfIntersections = checkSelfIntersection segments newSegment 
@@ -233,11 +235,20 @@ let calcDistance2 (intersection: Intersection) =
     let plB = segB.pathLength - (dist segB.p2 intersection.p)
     plA + plB
 let findClosestIntersection2 (wireA: Wire2) (wireB: Wire2) =
+//    let closest =
+//        calcIntersections2 wireA wireB
+//        |> Seq.map calcDistance2
+//        |> Seq.min
+//    closest
     let closest =
         calcIntersections2 wireA wireB
-        |> Seq.map calcDistance2
-        |> Seq.min
-    closest
+        |> Seq.minBy calcDistance2
+    calcDistance2 closest
+//    let mutable x = 0
+//    let closest =
+//        calcIntersections2 wireA wireB
+//        |> Seq.minBy (fun i -> (x <- calcDistance2 i))
+//    x
     
 let test2 =
     let wires =
