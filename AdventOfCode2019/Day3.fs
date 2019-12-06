@@ -201,13 +201,16 @@ let parseWireDescription2 (input: string) =
         let rmatch = regex.Match token 
         let (dir, length) = rmatch.Groups.[1].Value, int rmatch.Groups.[2].Value
         let plEnd = prevSeg.plEnd + length
-        let newSegment =
+        
+        let newP2 =
             match dir with
-            | "U" -> { p1 = prevSeg.p2; p2 = { prevSeg.p2 with y = (prevSeg.p2.y + length)}; plStart = prevSeg.plEnd; plEnd = plEnd; split = false }
-            | "D" -> { p1 = prevSeg.p2; p2 = { prevSeg.p2 with y = (prevSeg.p2.y - length)}; plStart = prevSeg.plEnd; plEnd = plEnd; split = false }
-            | "R" -> { p1 = prevSeg.p2; p2 = { prevSeg.p2 with x = (prevSeg.p2.x + length)}; plStart = prevSeg.plEnd; plEnd = plEnd; split = false }
-            | "L" -> { p1 = prevSeg.p2; p2 = { prevSeg.p2 with x = (prevSeg.p2.x - length)}; plStart = prevSeg.plEnd; plEnd = plEnd; split = false }
+            | "U" -> { prevSeg.p2 with y = (prevSeg.p2.y + length) }
+            | "D" -> { prevSeg.p2 with y = (prevSeg.p2.y - length) }
+            | "R" -> { prevSeg.p2 with x = (prevSeg.p2.x + length) }
+            | "L" -> { prevSeg.p2 with x = (prevSeg.p2.x - length) }
             | _ -> failwith "Unexpected input"
+        
+        let newSegment = { p1 = prevSeg.p2; p2 = newP2; plStart = prevSeg.plEnd; plEnd = plEnd; split = false }
         
         let selfIntersections = checkSelfIntersection segments newSegment 
         
