@@ -194,8 +194,6 @@ let split origSegment intersections =
 
 let parseWireDescription2 (input: string) =
     let regex = new Regex "(U|D|L|R)(\d+)" // grp1 = dir, grp2 = amount
-    //let mutable cursor: Point = {x=0; y=0}
-    //let mutable pathLength = 0
     let mutable prevSeg : WireSegment2 = {p1 = {x=0; y=0}; p2={x=0; y=0;}; plStart = 0; plEnd = 0;  split = false}
     let tokens = input.Split(",")
     let segments = new Wire2 (tokens.Length) // we know it's at least as big as this
@@ -236,25 +234,22 @@ let calcIntersections2 (wireA: Wire2) (wireB: Wire2) =
 
 // sum of wire pathlength to intersection
 let calcDistance2 (intersection: Intersection) =
-    let segA, segB = intersection.segmentA, intersection.segmentB
-    let plA = segA.plEnd - (dist segA.p2 intersection.p)
-    let plB = segB.plEnd - (dist segB.p2 intersection.p)
+    
+    let pathLengthForWire seg p =
+        if seg.plEnd > seg.plStart then
+            seg.plEnd - (dist seg.p2 p)
+        else
+            seg.plStart + (dist seg.p2 p)
+    
+    let plA = pathLengthForWire intersection.segmentA intersection.p
+    let plB = pathLengthForWire intersection.segmentB intersection.p
+    
     plA + plB
 let findClosestIntersection2 (wireA: Wire2) (wireB: Wire2) =
-//    let closest =
-//        calcIntersections2 wireA wireB
-//        |> Seq.map calcDistance2
-//        |> Seq.min
-//    closest
     let closest =
         calcIntersections2 wireA wireB
         |> Seq.minBy calcDistance2
     (closest, calcDistance2 closest)
-//    let mutable x = 0
-//    let closest =
-//        calcIntersections2 wireA wireB
-//        |> Seq.minBy (fun i -> (x <- calcDistance2 i))
-//    x
     
 let test2 =
     let wires =
