@@ -189,10 +189,10 @@ let split origSegment intersections =
           plStart = currSeg.plEnd
           plEnd = currSeg.plEnd + (dist currSeg.p2 origSegment.p2) }
     segs <- finalSeg :: segs 
-    //(List.rev segs), finalSeg.pathLength
     List.rev segs
 
-let parseWireDescription2 (input: string) =
+type SegsAddedCallback = list<WireSegment2>->unit
+let parseWireDescription2 (input: string) (segsAddedCallback: option<SegsAddedCallback>) =
     let regex = new Regex "(U|D|L|R)(\d+)" // grp1 = dir, grp2 = amount
     let mutable prevSeg : WireSegment2 = {p1 = {x=0; y=0}; p2={x=0; y=0;}; plStart = 0; plEnd = 0;  split = false}
     let tokens = input.Split(",")
@@ -221,7 +221,8 @@ let parseWireDescription2 (input: string) =
                 split newSegment selfIntersections
         
         segments.AddRange newSegs
-        //callback newSegs
+        if segsAddedCallback.IsSome then
+           segsAddedCallback.Value newSegs
         prevSeg <- (List.rev newSegs).Head
         )
     segments
@@ -255,7 +256,11 @@ let findClosestIntersection2 (wireA: Wire2) (wireB: Wire2) =
     (closest, calcDistance2 closest)
     
 let test2 =
+    let callback: SegsAddedCallback =
+        fun segs -> printfn "Seg count: %d" (List.length segs)
+    
     let wires =
         File.ReadAllLines "day3-input.txt"
-        |> Array.map parseWireDescription2
-    findClosestIntersection2 wires.[0] wires.[1]
+        |> Array.map (fun desc -> parseWireDescription2 desc (Some callback)) 
+     
+    findClosestIntersection2 wires.[0] wires.[1] 

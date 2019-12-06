@@ -140,19 +140,19 @@ let ``Part 2: can parse self intersecting, single`` =
         { p1 = {x=2; y=2}; p2 = {x=2; y=0}; plStart = 6; plEnd = 2 ; split = true }
         { p1 = {x=2; y=0}; p2 = {x=2; y= -2}; plStart = 2; plEnd = 4 ; split = true }
     ])
-    let actual = parseWireDescription2 siTestWire1Desc
+    let actual = parseWireDescription2 siTestWire1Desc None
     assert (expected.ToArray() = actual.ToArray()) 
     
 let ``Part 2: calc wire intersections, simple`` =
-    let wireA = parseWireDescription2 siTestWire1Desc
-    let wireB = parseWireDescription2 siTestWire2Desc
+    let wireA = parseWireDescription2 siTestWire1Desc None
+    let wireB = parseWireDescription2 siTestWire2Desc None
     let expected = 6 // (-1, 2) i think?
-    let _, actual = findClosestIntersection2 wireA wireB 
+    let _, actual = findClosestIntersection2 wireA wireB
     assert (expected = actual)
     
 let ``Part 2: wires cross after self intersection `` =
-    let wireA = parseWireDescription2 siTestWire1Desc
-    let wireB = parseWireDescription2 "D3,R4,U4,L3" // "D1,R4,U2,L3"
+    let wireA = parseWireDescription2 siTestWire1Desc None
+    let wireB = parseWireDescription2 "D3,R4,U4,L3" None // c.f. "D1,R4,U2,L3"
     let expected = 16
     let intersection, actual = findClosestIntersection2 wireA wireB
     assert (expected = actual)
@@ -160,22 +160,22 @@ let ``Part 2: wires cross after self intersection `` =
 
 
 let ``Part 2: example 1`` =
-    let wireA = parseWireDescription2 "R8,U5,L5,D3"
-    let wireB = parseWireDescription2 "U7,R6,D4,L4"
+    let wireA = parseWireDescription2 "R8,U5,L5,D3" None
+    let wireB = parseWireDescription2 "U7,R6,D4,L4" None
     let expected = 30
     let _, actual = findClosestIntersection2 wireA wireB
     assert (expected = actual)
 
 let ``Part 2: example 2`` =
-    let wireA = parseWireDescription2 "R75,D30,R83,U83,L12,D49,R71,U7,L72"
-    let wireB = parseWireDescription2 "U62,R66,U55,R34,D71,R55,D58,R83"
+    let wireA = parseWireDescription2 "R75,D30,R83,U83,L12,D49,R71,U7,L72" None
+    let wireB = parseWireDescription2 "U62,R66,U55,R34,D71,R55,D58,R83" None
     let expected = 610
     let _, actual = findClosestIntersection2 wireA wireB
     assert (expected = actual)
 
 let ``Part 2: example 3`` =
-    let wireA = parseWireDescription2 "R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51"
-    let wireB = parseWireDescription2 "U98,R91,D20,R16,D67,R40,U7,R15,U6,R7"
+    let wireA = parseWireDescription2 "R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51" None
+    let wireB = parseWireDescription2 "U98,R91,D20,R16,D67,R40,U7,R15,U6,R7" None
     let expected = 410
     let _, actual = findClosestIntersection2 wireA wireB
     assert (expected = actual)
