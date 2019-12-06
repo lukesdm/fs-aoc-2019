@@ -240,10 +240,19 @@ let calcIntersections2 (wireA: Wire2) (wireB: Wire2) =
 let calcDistance2 (intersection: Intersection) =
     
     let pathLengthForWire seg p =
-        if seg.plEnd > seg.plStart then
-            seg.plEnd - (dist seg.p2 p)
-        else
-            seg.plStart + (dist seg.p2 p)
+//        if seg.plEnd > seg.plStart then
+//            seg.plEnd - (dist seg.p2 p)
+//        elif seg.plStart > seg.plEnd then
+//            seg.plStart + (dist seg.p2 p)
+//        else
+//            failwith "unexpected corner case"
+        seg.plStart + (dist seg.p1 p)
+//        if seg.plEnd > seg.plStart then
+//            seg.plEnd - (dist seg.p2 p)
+//        elif seg.plStart > seg.plEnd then
+//            seg.plStart + (dist seg.p2 p)
+//        else
+//            failwith "unexpected corner case"
     
     let plA = pathLengthForWire intersection.segmentA intersection.p
     let plB = pathLengthForWire intersection.segmentB intersection.p
@@ -255,6 +264,16 @@ let findClosestIntersection2 (wireA: Wire2) (wireB: Wire2) =
         |> Seq.minBy calcDistance2
     (closest, calcDistance2 closest)
     
+let getBounds (wire: Wire2) =
+    let fminX seg = Math.Min (seg.p1.x, seg.p2.x)
+    let fminY seg = Math.Min (seg.p1.y, seg.p2.y)
+    let fmaxX seg = Math.Max (seg.p1.x, seg.p2.x)
+    let fmaxY seg = Math.Max (seg.p1.y, seg.p2.y)
+    let minX = Seq.minBy fminX wire
+    let minY = Seq.minBy fminY wire
+    let maxX = Seq.maxBy fmaxX wire
+    let maxY = Seq.maxBy fmaxY wire
+    (fminX minX, fminY minY, fmaxX maxX, fmaxY maxY)
 let test2 =
     let callback: SegsAddedCallback =
         fun segs -> printfn "Seg count: %d" (List.length segs)
