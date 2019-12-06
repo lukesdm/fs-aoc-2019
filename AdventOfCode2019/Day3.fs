@@ -256,17 +256,15 @@ let findClosestIntersection2 (wireA: Wire2) (wireB: Wire2) =
 // x,y coords of lower left and top right corners 
 type Rect = ((int*int) * (int*int))
 
-let getBounds wire : Rect =
-    // TODO: figure out how to extract calculated min to avoid reevaluating afterwards
-    let fminX seg = Math.Min (seg.p1.x, seg.p2.x)
-    let fminY seg = Math.Min (seg.p1.y, seg.p2.y)
-    let fmaxX seg = Math.Max (seg.p1.x, seg.p2.x)
-    let fmaxY seg = Math.Max (seg.p1.y, seg.p2.y)
-    let minX = Seq.minBy fminX wire
-    let minY = Seq.minBy fminY wire
-    let maxX = Seq.maxBy fmaxX wire
-    let maxY = Seq.maxBy fmaxY wire
-    (fminX minX, fminY minY), (fmaxX maxX, fmaxY maxY)
+let getBounds (segments: seq<WireSegment2>) : Rect =
+    let initial = ((Int32.MaxValue,Int32.MaxValue),(Int32.MinValue,Int32.MinValue))
+    let boundingRect =
+        (initial, segments) ||> Seq.fold (
+            fun ((minX, minY), (maxX, maxY)) seg ->
+                (Seq.min [|seg.p1.x; seg.p2.x; minX|], Seq.min [|seg.p1.y; seg.p2.y; minY|]),
+                (Seq.max [|seg.p1.x; seg.p2.x; maxX|], Seq.max [|seg.p1.y; seg.p2.y; maxY|])
+        )
+    boundingRect
 
 // for viz - gets scale and offsets required to fit wire onto canvas
 let getTransform srcRect destRect =
