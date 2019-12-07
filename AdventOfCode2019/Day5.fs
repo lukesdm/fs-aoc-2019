@@ -155,9 +155,18 @@ let ``io example 1`` =
 
 // FOR REAL...
 // The TEST diagnostic program will start by requesting from the user the ID of the system to test by running an input instruction - provide it 1
+
+
+let patch (prog: Program) =
+    //prog.[238] <- 135
+    prog
+    
 let execute () =
-    let prog = File.ReadAllText "day5-input.txt" |> parseProgDesc
+    let prog = File.ReadAllText "day5-input.txt" |> parseProgDesc |> patch
     let progInput = 1
     let output = new Output()
     let _ = run prog progInput output
+    // TODO: Fix prog - (mine or theirs?) this should not fail:
+    let diagnosticCode = output |> Seq.filter (fun o -> o <> 0) |> Seq.exactlyOne 
+    printf "Day 5 part 1 result = %d" diagnosticCode
     output.ToArray()
