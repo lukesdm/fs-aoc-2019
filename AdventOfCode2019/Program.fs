@@ -46,5 +46,7 @@ let main argv =
     
     printf "%s" Day5.hello
     
+    Day5.execute() |> ignore
+    
     // if we get here, everything is OK - all tests passed (no assertions failed).  
     0

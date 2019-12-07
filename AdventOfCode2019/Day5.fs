@@ -7,6 +7,10 @@ let hello = "just need a reference to trigger the code in here."
 
 // Program/memory
 type Program = int[]
+
+type Input = int
+type Output = ResizeArray<int> 
+//type Computer = Program * Input * Output
     
 type ParamMode =
     | Position = 0
@@ -49,7 +53,7 @@ let pad0 n (digits: int[]) =
 let parseInst (inst: int) : OpCode * ParamMode[] =
     let digits = toDigits inst |> pad0 5 // for now, always pad to 5 and ignore surplus modes 
     let opCode = enum<OpCode> (10*digits.[3] + digits.[4])
-    let paramModes: ParamMode[] = digits.[..2] |> Array.map enum<ParamMode>
+    let paramModes: ParamMode[] = digits.[..2] |> Array.rev |> Array.map enum<ParamMode>
     (opCode, paramModes)
 
 let parse (program: Program) (pc: int) : Instruction =
@@ -70,10 +74,10 @@ let getArg (mem: Program) (p:Param) =
     | ParamMode.Position -> mem.[v]
     | _ -> failwith "Parameter mode unsupported."
  
-let eval (program: Program) (instruction: Instruction) =
+let eval (program: Program) (instruction: Instruction) (input: Input) (output: Output) =
     let getArg = getArg program // partial application
     match (instruction.opCode, instruction.opParams) with
-    | opCode, Three (o, in1, in2) ->
+    | opCode, Three (in1, in2, o) ->
         let dest = snd o //getArg o (see [Note])
         let arg1 = getArg in1
         let arg2 = getArg in2
@@ -82,25 +86,24 @@ let eval (program: Program) (instruction: Instruction) =
         | OpCode.Multiply -> program.[dest] <- arg1 * arg2
         | _ -> failwith "Unsupported opCode"
     | opCode, One (p) ->
-        let dest = snd p //getArg p (see [Note])
+        let loc = snd p //getArg p (see [Note])
         match opCode with
-        | OpCode.Input -> failwith "TODO" // TODO (Get input and write to p val)
-        | OpCode.Output -> failwith "TODO" // TODO (Get p val and Output)
+        | OpCode.Input -> program.[loc] <- input
+        | OpCode.Output -> output.Add(program.[loc])
         | _ -> failwith "Unsupported opCode"
     | OpCode.Halt, Zilch -> ignore()
     | _ -> failwith "Unsupported opCode"
 
 // [Note] "Parameters that an instruction writes to will never be in immediate mode."
     
-let run (program : Program) = // TODO: Input and Output
+let run (program : Program) (input: Input) (output: Output) =
     let mutable pc = 0
-    //let mutable instruction : Instruction = Undefined
     let mutable halt = false
     while not halt do
         let instruction = parse program pc 
         
         // TODO: Input and output
-        eval program instruction
+        eval program instruction input output
         
         if instruction.opCode = OpCode.Halt then halt <- true
         
@@ -138,19 +141,23 @@ let ``parseInst example 1`` =
 let ``multiply example 1`` =
     let prog = parseProgDesc "1002,4,3,4,33"
     let expected = [|1002; 4; 3; 4; 99|]
-    let actual = run prog
+    let actual = run prog 0 (new Output())
     assert (expected = actual)
     
 // The program 3,0,4,0,99 outputs whatever it gets as input, then halts.
 let ``io example 1`` =
     let prog = parseProgDesc "3,0,4,0,99"
-    assert false
+    let expected = [|42|]
+    let output = new Output()
+    let _ = run prog 42 output
+    let actual = output.ToArray()
+    assert (expected = actual)
 
 // FOR REAL...
-    
 // The TEST diagnostic program will start by requesting from the user the ID of the system to test by running an input instruction - provide it 1
-let execute =
+let execute () =
     let prog = File.ReadAllText "day5-input.txt" |> parseProgDesc
     let progInput = 1
-    // TODO: Run prog with input and write output.
-    0
+    let output = new Output()
+    let _ = run prog progInput output
+    output.ToArray()
