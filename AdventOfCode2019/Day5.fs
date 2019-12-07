@@ -2,7 +2,6 @@
 open AdventOfCode2019
 open Shared
 open System.IO
-open System.Reflection.Emit
 
 let hello = "just need a reference to trigger the code in here."
 
@@ -64,7 +63,7 @@ let parse (program: Program) (pc: int) : Instruction =
         { def with opParams = Three ((modes.[0], program.[pc+1]), (modes.[1], program.[pc+2]), (modes.[2], program.[pc+3])) }
     | _ -> failwith "Bad input format"
 
-let getArg (p:Param) (mem: Program) =
+let getArg (mem: Program) (p:Param) =
     let (mode, v) = p
     match mode with
     | ParamMode.Immediate -> v
@@ -72,15 +71,26 @@ let getArg (p:Param) (mem: Program) =
     | _ -> failwith "Parameter mode unsupported."
  
 let eval (program: Program) (instruction: Instruction) =
-    // TODO: Implement with new stuff
+    let getArg = getArg program // partial application
     match (instruction.opCode, instruction.opParams) with
-    | OpCode.Add, Three (o, in1, in2) ->
-        let dest = getArg o program
-        let arg1 = getArg in1 program
-        let arg2 = getArg in2 program
-        program.[dest] <- arg1 + arg2
-    | Multiply op -> program.[op.OutAddress] <- program.[op.In1Address] * program.[op.In2Address]
-    | _ -> ignore()
+    | opCode, Three (o, in1, in2) ->
+        let dest = snd o //getArg o (see [Note])
+        let arg1 = getArg in1
+        let arg2 = getArg in2
+        match opCode with
+        | OpCode.Add -> program.[dest] <- arg1 + arg2
+        | OpCode.Multiply -> program.[dest] <- arg1 * arg2
+        | _ -> failwith "Unsupported opCode"
+    | opCode, One (p) ->
+        let dest = snd p //getArg p (see [Note])
+        match opCode with
+        | OpCode.Input -> failwith "TODO" // TODO (Get input and write to p val)
+        | OpCode.Output -> failwith "TODO" // TODO (Get p val and Output)
+        | _ -> failwith "Unsupported opCode"
+    | OpCode.Halt, Zilch -> ignore()
+    | _ -> failwith "Unsupported opCode"
+
+// [Note] "Parameters that an instruction writes to will never be in immediate mode."
     
 let run (program : Program) = // TODO: Input and Output
     let mutable pc = 0
@@ -97,6 +107,10 @@ let run (program : Program) = // TODO: Input and Output
         pc <- pc + instruction.Length 
     program
 
+let parseProgDesc (desc: string) : Program =
+    desc.Split(",")
+    |> Array.map System.Int32.Parse
+    
 // TESTS
 
 // 1002 -> 01002
@@ -121,8 +135,22 @@ let ``parseInst example 1`` =
     let actual = parseInst input
     assert (expected = actual)
 
-// PROPER INPUT
-let input : Program =
-    (File.ReadAllText "day5-input.txt")
-        .Split(",")
-    |> Array.map System.Int32.Parse
+let ``multiply example 1`` =
+    let prog = parseProgDesc "1002,4,3,4,33"
+    let expected = [|1002; 4; 3; 4; 99|]
+    let actual = run prog
+    assert (expected = actual)
+    
+// The program 3,0,4,0,99 outputs whatever it gets as input, then halts.
+let ``io example 1`` =
+    let prog = parseProgDesc "3,0,4,0,99"
+    assert false
+
+// FOR REAL...
+    
+// The TEST diagnostic program will start by requesting from the user the ID of the system to test by running an input instruction - provide it 1
+let execute =
+    let prog = File.ReadAllText "day5-input.txt" |> parseProgDesc
+    let progInput = 1
+    // TODO: Run prog with input and write output.
+    0
