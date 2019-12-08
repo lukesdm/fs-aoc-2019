@@ -155,16 +155,67 @@ let ``io example 1`` () =
     let actual = output.ToArray()
     assert (expected = actual)
 
-// FOR REAL...
-// The TEST diagnostic program will start by requesting from the user the ID of the system to test by running an input instruction - provide it 1
+// Tests from part 1
+let runTests1 () =
+    ``pad0 n less than input`` ()
+    ``pad0 n equals input`` ()
+    ``pad0 n greater than input`` ()
+    ``parseInst example 1`` ()
+    ``multiply example 1`` ()
+    ``io example 1`` ()
+    
+let ``part 2 integration`` () =
+    let progDesc = "3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99"
+    // The above example program uses an input instruction to ask for a single number.
+    // The program will then output 999 if the input value is below 8,
+    // output 1000 if the input value is equal to 8,
+    // or output 1001 if the input value is greater than 8.
+    let ``less than 8`` () =
+        let prog = parseProgDesc progDesc
+        let expected = [|999|]
+        let output = new Output()
+        let _ = run prog 7 output
+        let actual = output.ToArray()
+        assert (expected = actual)
+    
+    let ``equals 8`` () =
+        let prog = parseProgDesc progDesc
+        let expected = [|1000|]
+        let output = new Output()
+        let _ = run prog 8 output
+        let actual = output.ToArray()
+        assert (expected = actual)
+    
+    let ``greater than 8`` () =
+        let prog = parseProgDesc progDesc
+        let expected = [|1001|]
+        let output = new Output()
+        let _ = run prog 9 output
+        let actual = output.ToArray()
+        assert (expected = actual)
+    
+    ``less than 8``()
+    ``equals 8``()
+    ``greater than 8``()
 
+
+// Tests for part 2
+let runTests2 () =
+    ``part 2 integration``()
+
+
+// FOR REAL...
 
 let patch (prog: Program) =
     // If required, initialize like so:
     // prog.[238] <- 135
     prog
     
-let execute () =
+
+    
+
+// The TEST diagnostic program will start by requesting from the user the ID of the system to test by running an input instruction - provide it 1
+let execute1 () =
     let prog = File.ReadAllText "day5-input.txt" |> parseProgDesc |> patch
     let progInput = 1
     let output = new Output()
@@ -172,3 +223,13 @@ let execute () =
     let diagnosticCode = output |> Seq.filter (fun o -> o <> 0) |> Seq.exactlyOne 
     printf "Day 5 part 1 result = %d" diagnosticCode
     output.ToArray()
+    
+let execute2 () =
+    let prog = File.ReadAllText "day5-input.txt" |> parseProgDesc |> patch
+    let progInput = 5
+    let output = new Output()
+    let _ = run prog progInput output
+    let diagnosticCode = output |> Seq.filter (fun o -> o <> 0) |> Seq.exactlyOne 
+    printf "Day 5 part 2 result = %d" diagnosticCode
+    output.ToArray()
+    
