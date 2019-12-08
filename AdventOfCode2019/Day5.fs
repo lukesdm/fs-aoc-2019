@@ -77,19 +77,22 @@ let getArg (mem: Program) (p:Param) =
 let eval (program: Program) (instruction: Instruction) (input: Input) (output: Output) =
     let getArg = getArg program // partial application
     match (instruction.opCode, instruction.opParams) with
-    | opCode, Three (in1, in2, o) ->
-        let dest = snd o //getArg o (see [Note])
-        let arg1 = getArg in1
-        let arg2 = getArg in2
+    | opCode, Three (in1Param, in2Param, outParam) ->
+        let dest = snd outParam //NOT getArg o (see [Note])
+        let in1Val = getArg in1Param
+        let in2Val = getArg in2Param
         match opCode with
-        | OpCode.Add -> program.[dest] <- arg1 + arg2
-        | OpCode.Multiply -> program.[dest] <- arg1 * arg2
+        | OpCode.Add -> program.[dest] <- in1Val + in2Val
+        | OpCode.Multiply -> program.[dest] <- in1Val * in2Val
         | _ -> failwith "Unsupported opCode"
-    | opCode, One (p) ->
-        let loc = snd p //getArg p (see [Note])
+    | opCode, One (param) ->
         match opCode with
-        | OpCode.Input -> program.[loc] <- input
-        | OpCode.Output -> output.Add(program.[loc])
+        | OpCode.Input ->
+            let dest = snd param //NOT getArg p (see [Note])
+            program.[dest] <- input
+        | OpCode.Output ->
+            let value = getArg param
+            output.Add(value)
         | _ -> failwith "Unsupported opCode"
     | OpCode.Halt, Zilch -> ignore()
     | _ -> failwith "Unsupported opCode"
@@ -102,7 +105,6 @@ let run (program : Program) (input: Input) (output: Output) =
     while not halt do
         let instruction = parse program pc 
         
-        // TODO: Input and output
         eval program instruction input output
         
         if instruction.opCode = OpCode.Halt then halt <- true
@@ -117,35 +119,35 @@ let parseProgDesc (desc: string) : Program =
 // TESTS
 
 // 1002 -> 01002
-let ``pad0 n less than input`` =
+let ``pad0 n less than input`` () =
     let expected = [|0; 1; 0; 0; 2|]
     let actual = pad0 5 [|1; 0; 0; 2|]
     assert (expected = actual)
 
-let ``pad0 n equals input`` =
+let ``pad0 n equals input`` () =
     let expected = [|1; 0; 0; 0; 2|]
     let actual = pad0 5 [|1; 0; 0; 0; 2|]
     assert (expected = actual)
     
-let ``pad0 n greater than input`` =
+let ``pad0 n greater than input`` () =
     let expected = [|1; 0; 0; 0; 0; 2|]
     let actual = pad0 5 [|1; 0; 0; 0; 0; 2|]
     assert (expected = actual)
 
-let ``parseInst example 1`` =
+let ``parseInst example 1`` () =
     let input = 1002
     let expected = (OpCode.Multiply, [|ParamMode.Position; ParamMode.Immediate; ParamMode.Position|])
     let actual = parseInst input
     assert (expected = actual)
 
-let ``multiply example 1`` =
+let ``multiply example 1`` () =
     let prog = parseProgDesc "1002,4,3,4,33"
     let expected = [|1002; 4; 3; 4; 99|]
     let actual = run prog 0 (new Output())
     assert (expected = actual)
     
 // The program 3,0,4,0,99 outputs whatever it gets as input, then halts.
-let ``io example 1`` =
+let ``io example 1`` () =
     let prog = parseProgDesc "3,0,4,0,99"
     let expected = [|42|]
     let output = new Output()
@@ -158,7 +160,8 @@ let ``io example 1`` =
 
 
 let patch (prog: Program) =
-    //prog.[238] <- 135
+    // If required, initialize like so:
+    // prog.[238] <- 135
     prog
     
 let execute () =
@@ -166,7 +169,6 @@ let execute () =
     let progInput = 1
     let output = new Output()
     let _ = run prog progInput output
-    // TODO: Fix prog - (mine or theirs?) this should not fail:
     let diagnosticCode = output |> Seq.filter (fun o -> o <> 0) |> Seq.exactlyOne 
     printf "Day 5 part 1 result = %d" diagnosticCode
     output.ToArray()
