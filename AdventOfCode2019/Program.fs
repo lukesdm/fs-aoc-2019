@@ -50,5 +50,7 @@ let main argv =
     
     Day5.runTests2()
     
+    Day5.execute2() |> ignore
+    
     // if we get here, everything is OK - all tests passed (no assertions failed).  
     0

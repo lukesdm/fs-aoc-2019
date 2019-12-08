@@ -2,6 +2,7 @@
 open AdventOfCode2019
 open Shared
 open System.IO
+open System.Reflection.Emit
 
 let hello = "just need a reference to trigger the code in here."
 
@@ -20,6 +21,7 @@ type Param = ParamMode * Value
 type Params =
     | Zilch // Zero (avoid naming conflict)
     | One of Param
+    | Two of Param * Param
     | Three of Param * Param * Param
   
 type OpCode =
@@ -28,6 +30,10 @@ type OpCode =
     | Multiply = 2
     | Input = 3
     | Output = 4
+    | JumpIfTrue = 5
+    | JumpIfFalse = 6
+    | LessThan = 7
+    | Equals = 8
     | Undefined = 0
 
 type Instruction =
@@ -37,6 +43,7 @@ type Instruction =
             match this.opParams with
             | Zilch -> 1
             | One _ -> 2
+            | Two (_,_) -> 3 // TODO: can simplify to single _ ?
             | Three (_,_,_)  -> 4
 
 //ABCDE
@@ -63,7 +70,9 @@ let parse (program: Program) (pc: int) : Instruction =
     | OpCode.Halt -> def
     | OpCode.Input | OpCode.Output ->
         { def with opParams = One (modes.[0], program.[pc+1])  }
-    | OpCode.Add | OpCode.Multiply ->
+    | OpCode.JumpIfFalse | OpCode.JumpIfTrue ->
+        { def with opParams = Two ((modes.[0], program.[pc+1]), (modes.[1], program.[pc+2])) }
+    | OpCode.Add | OpCode.Multiply | OpCode.LessThan | OpCode.Equals ->
         { def with opParams = Three ((modes.[0], program.[pc+1]), (modes.[1], program.[pc+2]), (modes.[2], program.[pc+3])) }
     | _ -> failwith "Bad input format"
 
@@ -75,6 +84,7 @@ let getArg (mem: Program) (p:Param) =
     | _ -> failwith "Parameter mode unsupported."
  
 let eval (program: Program) (instruction: Instruction) (input: Input) (output: Output) =
+    let mutable pcOverride: int option = None
     let getArg = getArg program // partial application
     match (instruction.opCode, instruction.opParams) with
     | opCode, Three (in1Param, in2Param, outParam) ->
@@ -84,6 +94,17 @@ let eval (program: Program) (instruction: Instruction) (input: Input) (output: O
         match opCode with
         | OpCode.Add -> program.[dest] <- in1Val + in2Val
         | OpCode.Multiply -> program.[dest] <- in1Val * in2Val
+        | OpCode.LessThan -> program.[dest] <- if in1Val < in2Val then 1 else 0
+        | OpCode.Equals -> program.[dest] <- if in1Val = in2Val then 1 else 0 
+        | _ -> failwith "Unsupported opCode"
+    | opCode, Two (param1, param2) ->
+        let test = getArg param1
+        let newPc = getArg param2
+        match opCode with
+        | OpCode.JumpIfTrue ->
+            if test <> 0 then pcOverride <- Some newPc
+        | OpCode.JumpIfFalse ->
+            if test = 0 then pcOverride <- Some newPc
         | _ -> failwith "Unsupported opCode"
     | opCode, One (param) ->
         match opCode with
@@ -96,6 +117,8 @@ let eval (program: Program) (instruction: Instruction) (input: Input) (output: O
         | _ -> failwith "Unsupported opCode"
     | OpCode.Halt, Zilch -> ignore()
     | _ -> failwith "Unsupported opCode"
+    
+    pcOverride
 
 // [Note] "Parameters that an instruction writes to will never be in immediate mode."
     
@@ -105,11 +128,11 @@ let run (program : Program) (input: Input) (output: Output) =
     while not halt do
         let instruction = parse program pc 
         
-        eval program instruction input output
+        let pcOverride = eval program instruction input output
         
         if instruction.opCode = OpCode.Halt then halt <- true
         
-        pc <- pc + instruction.Length 
+        pc <- if pcOverride.IsNone then (pc + instruction.Length) else pcOverride.Value 
     program
 
 let parseProgDesc (desc: string) : Program =
@@ -221,7 +244,7 @@ let execute1 () =
     let output = new Output()
     let _ = run prog progInput output
     let diagnosticCode = output |> Seq.filter (fun o -> o <> 0) |> Seq.exactlyOne 
-    printf "Day 5 part 1 result = %d" diagnosticCode
+    printfn "Day 5 part 1 result = %d" diagnosticCode
     output.ToArray()
     
 let execute2 () =
@@ -230,6 +253,6 @@ let execute2 () =
     let output = new Output()
     let _ = run prog progInput output
     let diagnosticCode = output |> Seq.filter (fun o -> o <> 0) |> Seq.exactlyOne 
-    printf "Day 5 part 2 result = %d" diagnosticCode
+    printfn "Day 5 part 2 result = %d" diagnosticCode
     output.ToArray()
     
