@@ -38,6 +38,19 @@ let calcChecksum (image: Image) =
     image
         |> Seq.minBy (countN 0)
         |> checkSum
+
+// Part 2
+let composite (image: Image) : Layer =
+    // for each pixel:
+    //  first corresponding where colour is not 2 i.e. transparent
+    let height = Seq.head image |> Array2D.length1
+    let width = Seq.head image |> Array2D.length2
+
+    //let final = Array2D.create (Array2D.length1 image) (Array2D.length2 image) 0
+    let gen i j = image |> Seq.find (fun layer -> layer.[i,j] <> 2) |> (fun layer -> layer.[i,j])
+    let final = Array2D.init height width gen
+    final   
+
 // TESTS
 //For example, given an image 3 pixels wide and 2 pixels tall,
 // the image data 123456789012 corresponds to the following image layers:
@@ -75,12 +88,21 @@ let ``can calc checksum`` () =
     let actual = calcChecksum layers
     assert (expected = actual)
 
+// Part 2
+let ``can composite`` () =
+    let image = parse 2 2 "0222112222120000"
+    let expected = array2D [| [|0;1|]; [|1;0|] |]
+    let actual = composite image
+    assert (expected = actual)
+
 let runTests () =
     ``can parse 1``()
     ``can calc checksum``()
+    ``can composite``()
     
 let execute () =
     let image = File.ReadAllText "day8-input.txt" |> parse 25 6
     let cs = calcChecksum image
     printfn "Day 8 part 1 result: %d" cs
-    
+    let finalImage = composite image
+    printfn "Day 8 part 2 result: %A" finalImage  // can then manually format by copy/paste + replace with alt-219 block char
