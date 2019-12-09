@@ -10,7 +10,7 @@ open System;
 // What is the sum of the fuel requirements for all of the modules on your spacecraft?
 
 let input =
-    File.ReadAllLines "day1-input.txt"
+    File.ReadAllLines "Auxi\day1-input.txt"
     |> Array.map (fun s -> int s)
 
 let calcFuel1 mass =
