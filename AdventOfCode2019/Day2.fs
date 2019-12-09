@@ -7,7 +7,7 @@ open System.IO
 type Program = int[]
 
 let input : Program =
-    (File.ReadAllText "day2-input.txt")
+    (File.ReadAllText "Auxi\day2-input.txt")
         .Split(",")
     |> Array.map System.Int32.Parse
 

@@ -101,7 +101,7 @@ let runTests () =
     ``can composite``()
     
 let execute () =
-    let image = File.ReadAllText "day8-input.txt" |> parse 25 6
+    let image = File.ReadAllText "Auxi\day8-input.txt" |> parse 25 6
     let cs = calcChecksum image
     printfn "Day 8 part 1 result: %d" cs
     let finalImage = composite image

@@ -89,7 +89,7 @@ let findClosestIntersection1 (wireA : Wire1) (wireB : Wire1) =
     closest
     
 let readInput1 =
-    File.ReadAllLines "day3-input.txt"
+    File.ReadAllLines "Auxi\day3-input.txt"
     |> Array.map parseWireDescription1
     
 let test1 =
@@ -283,7 +283,7 @@ let test2 =
 //        Some (fun segs -> printfn "Seg count: %d" (List.length segs))
     
     let wires =
-        File.ReadAllLines "day3-input.txt"
+        File.ReadAllLines "Auxi\day3-input.txt"
         |> Array.map (fun desc -> parseWireDescription2 desc callback) 
      
     let bounds = getBounds (Seq.append (wires.[0] :> seq<WireSegment2>) (wires.[1] :> seq<WireSegment2>))

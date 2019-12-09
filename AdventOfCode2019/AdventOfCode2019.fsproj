@@ -8,30 +8,33 @@
     <ItemGroup>
         <Compile Include="Shared.fs" />
         <Compile Include="Day1.fs" />
-        <Content Include="day1-input.txt">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
         <Compile Include="Day1.Test.fs" />
-        <Content Include="day2-input.txt">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
         <Compile Include="Day2.fs" />
         <Compile Include="Day2.Test.fs" />
-        <Content Include="day3-input.txt">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
         <Compile Include="Day3.fs" />
         <Compile Include="Day3.Test.fs" />
         <Compile Include="Day4.fs" />
         <Compile Include="Day5.fs" />
+        <Content Include="day1-input.txt">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
         <Content Include="Auxi\FableRepl.fsx" />
-        <Content Include="day5-input.txt">
+        <Content Include="Auxi\day6-input.txt">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Include="Auxi\day5-input.txt">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Include="Auxi\day8-input.txt">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Include="Auxi\day3-input.txt">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Include="Auxi\day2-input.txt">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
         <Compile Include="Day8.fs" />
-        <Content Include="day8-input.txt">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
         <Compile Include="Day6.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>

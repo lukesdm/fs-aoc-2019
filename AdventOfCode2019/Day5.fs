@@ -239,7 +239,7 @@ let patch (prog: Program) =
 
 // The TEST diagnostic program will start by requesting from the user the ID of the system to test by running an input instruction - provide it 1
 let execute1 () =
-    let prog = File.ReadAllText "day5-input.txt" |> parseProgDesc |> patch
+    let prog = File.ReadAllText "Auxi\day5-input.txt" |> parseProgDesc |> patch
     let progInput = 1
     let output = new Output()
     let _ = run prog progInput output
@@ -248,7 +248,7 @@ let execute1 () =
     output.ToArray()
     
 let execute2 () =
-    let prog = File.ReadAllText "day5-input.txt" |> parseProgDesc |> patch
+    let prog = File.ReadAllText "Auxi\day5-input.txt" |> parseProgDesc |> patch
     let progInput = 5
     let output = new Output()
     let _ = run prog progInput output
