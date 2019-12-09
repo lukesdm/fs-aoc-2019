@@ -14,7 +14,7 @@ let inRange n lower upper =
     lower <= n && n <= upper
 
 let checkDigits1 (n: int) =
-    let digits = toDigits n
+    let digits = intToDigits n
     let mutable hasDouble = false
     let mutable decreases = false
     digits |> Seq.pairwise
@@ -56,7 +56,7 @@ let calc1 =
 // PART 2:
 //the two adjacent matching digits are not part of a larger group of matching digits
 let checkDigits2 (n: int) =
-    let digits = toDigits n
+    let digits = intToDigits n
     
     let mutable decreases = false
     

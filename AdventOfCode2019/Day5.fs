@@ -58,7 +58,7 @@ let pad0 n (digits: int[]) =
     Array.append [|for _ in 1..(n-digits.Length) -> 0 |] digits
 
 let parseInst (inst: int) : OpCode * ParamMode[] =
-    let digits = toDigits inst |> pad0 5 // for now, always pad to 5 and ignore surplus modes 
+    let digits = intToDigits inst |> pad0 5 // for now, always pad to 5 and ignore surplus modes 
     let opCode = enum<OpCode> (10*digits.[3] + digits.[4])
     let paramModes: ParamMode[] = digits.[..2] |> Array.rev |> Array.map enum<ParamMode>
     (opCode, paramModes)
