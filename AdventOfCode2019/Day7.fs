@@ -23,7 +23,6 @@ open System.IO
 // Program/memory
 type Program = int[]
 
-// type Input = int
 type Input = Queue<int>
 type Output = ResizeArray<int> // could possibly make this a queue as well, though not essential right now  
     
@@ -149,22 +148,21 @@ let eval (program: Program) (instruction: Instruction) (input: Input) (output: O
 
 // [Note] "Parameters that an instruction writes to will never be in immediate mode."
 
-// type PC = int ref    
-let run (program : Program) (input: Input) (output: Output) = //(pc: PC)
-    let mutable pc = 0 //initPc
+let run (program : Program) (input: Input) (output: Output) initPc =
+    let mutable pc = initPc
     let mutable status = Running
 
     while status = Running do
-        let instruction = parse program pc //!pc 
+        let instruction = parse program pc
         
         let newState = eval program instruction input output
         
         match newState with
-        | Some (PCOverride pcO) -> pc <- pcO // pc := pcO 
+        | Some (PCOverride pcO) -> pc <- pcO 
         | Some (Status s) -> status <- s
-        | None -> pc <- (pc + instruction.Length) //pc := (!pc + instruction.Length)
+        | None -> pc <- (pc + instruction.Length)
         
-    (program, status)
+    (program, status, pc)
 
 let parseProgDesc (desc: string) : Program =
     desc.Split(",")
@@ -180,20 +178,16 @@ let runAll1 phases initial program =
     phases |> Seq.iter (fun phase ->
         let inputBuff = new Input([ phase; prevOut ])
         let outputBuff = new Output()
-        let _ = run (Array.copy program) inputBuff outputBuff // (ref 0) 
+        let _ = run (Array.copy program) inputBuff outputBuff 0 
         prevOut <- Seq.exactlyOne outputBuff
         )
     prevOut
     
 type Phases = int[]
-//type Computer = Program * Input * Output
 
-type Computer = Program * Input * Output // * PC
-//type Computer = Program * Input * Output * Status
-//type Computer = { program: Program; input: Input; output: Output; mutable status: Status }  
+type Computer = { program: Program; input: Input; output: Output; mutable lastPc: int }  
 let runAll2 (phases: Phases) program =
-    let initSig = 0
-    let amps: seq<Computer> =
+    let amps =
         [|
             [| phases.[0] |]
             [| phases.[1] |]
@@ -201,18 +195,20 @@ let runAll2 (phases: Phases) program =
             [| phases.[3] |]
             [| phases.[4] |]
         |]
-        |> Seq.map ( fun initIn -> Array.copy program, new Input(initIn), new Output() ) //, ref 0 )
+        |> Array.map (fun initIn ->
+            { program = Array.copy program; input = new Input(initIn); output = new Output(); lastPc = 0 } )
     
-    let mutable lastAmpStatus = Running   //let (_,_,_, lastAmpStatus) = amps |> Seq.last 
+    let mutable lastAmpStatus = Running 
     let mutable prevOut = 0
     while lastAmpStatus <> Halted do
-        amps |> Seq.iter (fun (prog, inp, outp) -> // , pc) ->
-            inp.Enqueue(prevOut)
-            let (_, status) = run prog inp outp // pc
+        amps |> Array.iter (fun computer ->
+            computer.input.Enqueue(prevOut)
+            let (_, status, pc) = run computer.program computer.input computer.output computer.lastPc
+            computer.lastPc <- pc 
             lastAmpStatus <- status
-            prevOut <- Seq.last outp //Seq.exactlyOne outp
-            )
-    0
+            prevOut <- Seq.last computer.output //Seq.exactlyOne outp (maybe change this to queue)
+            ) 
+    prevOut
 
 // works for n <= 12 before hitting int32 limit
 let factorial n = seq { for i in 1..n -> i } |> Seq.reduce (*)
@@ -266,18 +262,13 @@ let permutations (choices: int[]) : seq<int[]> =
     }
 
 let maximise1 (program: Program) =
-    
     let mutable maxResult = Int32.MinValue 
-    
     Day7Data.permutations
     |> Seq.iter (fun phases ->
         let result = runAll1 phases 0 program
         maxResult <- Math.Max(result, maxResult)
         )
-    
     maxResult
-    
-
 
 let maximise2 (program: Program) =
     Day7Data.permutations2
@@ -343,9 +334,6 @@ let runTests() =
     ``part 1 - can maximise 1``()
     
     ``part 2 example 1``()
-    
-    
-    
     
 let execute1() =
     let prog = File.ReadAllText "Auxi\day7-input.txt" |> parseProgDesc
