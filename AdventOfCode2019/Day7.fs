@@ -3,6 +3,7 @@ open System.Collections.Generic
 open AdventOfCode2019
 open Shared
 open System
+open System.IO
 
 // Day 7: Amplification Circuit
 // https://adventofcode.com/2019/day/7
@@ -124,7 +125,7 @@ let eval (program: Program) (instruction: Instruction) (input: Input) (output: O
         match opCode with
         | OpCode.Input ->
             let dest = snd param //NOT getArg p (see [Note])
-            program.[dest] <- input.Dequeue() // TODO: check this is OK - should successive calls return same value by default?
+            program.[dest] <- input.Dequeue()  // (if input.Count > 1 then input.Dequeue() else input.Peek()) // TODO: check this is OK - should successive calls return same value by default?
         | OpCode.Output ->
             let value = getArg param
             output.Add(value)
@@ -174,15 +175,14 @@ let maximise (program: Program) =
     
     let mutable maxResult = Int32.MinValue 
     
-    // TODO: figure out how to do this with sequence expressions i.e.
-    //  sequence that generates arrays from [|0; 0; 0; 0; 0|] to [|4; 4; 4; 4; 4|]
-    
-    for i in 0..44444 do
-        let phases = i |> intToDigits |> pad0 5
+    [|0..4|]
+    |> Seq.permute (fun i -> i) // TODO: fix - doesn't work as expected! 
+    |> (fun phases ->
         let result = runAll phases 0 program
         maxResult <- Math.Max(result, maxResult)
-        
-    maxResult                    
+        )
+    
+    maxResult                
 
 let runTests() =
     let progDesc1 = "3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0"
@@ -220,5 +220,7 @@ let runTests() =
     ``example 3``()
     ``can maximise 1``()
     
-        
-
+let execute() =
+    let prog = File.ReadAllText "Auxi\day7-input.txt" |> parseProgDesc
+    let max = maximise prog
+    printfn "Day 7 part 1 result: %d" max

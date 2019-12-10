@@ -25,6 +25,9 @@
         <Content Include="Auxi\day8-input.txt">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
+        <Content Include="Auxi\day7-input.txt">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
         <Compile Include="Shared.fs" />
         <Compile Include="Day1.fs" />
         <Compile Include="Day1.Test.fs" />
