@@ -341,3 +341,8 @@ let execute1() =
     let prog = File.ReadAllText "Auxi\day7-input.txt" |> parseProgDesc
     let max = maximise1 prog
     printfn "Day 7 part 1 result: %d" max
+    
+let execute2() =
+    let prog = File.ReadAllText "Auxi\day7-input.txt" |> parseProgDesc
+    let (max,_) = maximise2 prog
+    printfn "Day 7 part 2 result: %d" max // 44282086 confirmed as correct
