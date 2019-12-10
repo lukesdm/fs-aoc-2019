@@ -60,7 +60,7 @@ let main argv =
     Day6.execute1()
     Day6.execute2()
     
-    //Day7.runTests()
+    Day7.runTests()
     Day7.execute()
     
     

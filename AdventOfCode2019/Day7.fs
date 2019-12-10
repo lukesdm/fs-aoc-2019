@@ -171,13 +171,63 @@ let runAll phases initial program =
         )
     prevOut
 
+// works for n <= 12 before hitting int32 limit
+let factorial n = seq { for i in 1..n -> i } |> Seq.reduce (*)
+
+
+// "...generates the next permutation lexicographically after a given permutation"
+// Algorithm from https://en.wikipedia.org/wiki/Permutation#Generation_in_lexicographic_order
+let calcNextPerm (perm: int[]) = // TODO: Fix this - not working properly.
+    let nextPerm = Array.copy perm
+    let iMax = nextPerm.Length - 1
+    //let mutable k: int = 0
+    //let mutable l: int = 0
+    
+    //1. Find the largest index k such that a[k] < a[k + 1]. If no such index exists, the permutation is the last permutation.
+//    while k + 1 <= maxIndex - 1 && nextPerm.[k] < nextPerm.[k + 1] do
+//        k <- k + 1
+    let k =
+        seq { 0..(iMax - 1) }
+        |> Seq.filter (fun k -> perm.[k] < perm.[k + 1])
+        |> Seq.append [ System.Int32.MinValue ] // in case empty  
+        |> Seq.max
+      
+    //2. Find the largest index l greater than k such that a[k] < a[l].
+//    l <- k + 1
+//    while l + 1 <= iMax && nextPerm.[k] < nextPerm.[l] do
+//        l <- l + 1
+    let l =
+        seq { (k + 1)..iMax }
+        |> Seq.filter (fun l -> perm.[k] < perm.[l])
+        |> Seq.append [ System.Int32.MinValue ] // in case empty
+        |> Seq.max
+    
+    // 3. Swap the value of a[k] with that of a[l].
+    if l > 0 && k > 0 then
+        let temp = nextPerm.[k]
+        nextPerm.[k] <- nextPerm.[l]
+        nextPerm.[l] <- temp
+    
+    //4. Reverse the sequence from a[k + 1] up to and including the final element a[n].
+    Array.append (nextPerm.[..k]) (Array.rev nextPerm.[(k+1)..])
+
+// TODO: get this working
+let permutations (choices: int[]) : seq<int[]> =
+    let permCount = factorial choices.Length
+    let mutable currPerm = Array.sort choices
+    
+    seq {
+        for _ in 1..permCount do
+            yield currPerm
+            currPerm <- calcNextPerm currPerm
+    }
+
 let maximise (program: Program) =
     
     let mutable maxResult = Int32.MinValue 
     
-    [|0..4|]
-    |> Seq.permute (fun i -> i) // TODO: fix - doesn't work as expected! 
-    |> (fun phases ->
+    Day7.Data.permutations
+    |> Seq.iter (fun phases ->
         let result = runAll phases 0 program
         maxResult <- Math.Max(result, maxResult)
         )
@@ -210,15 +260,30 @@ let runTests() =
         assert (expectedOut = actualOut)
         
     let ``can maximise 1`` () =
-        let expected = 44444
+        let expected = 43210
         let prog = parseProgDesc progDesc1
         let actual = maximise prog
+        assert (expected = actual)
+    
+    let ``can find permutations`` () =
+        let choices = [| 0; 1; 2 |]
+        let expected = [|
+            [|0; 1; 2|]
+            [|0; 2; 1|]
+            [|1; 0; 2|]
+            [|1; 2; 0|]
+            [|2; 0; 1|]
+            [|2; 1; 0|]
+        |]
+        let actual = choices |> permutations |> Seq.toArray
         assert (expected = actual)
     
     ``example 1 - echo``()
     ``example 2``()
     ``example 3``()
+    // ``can find permutations``() // TODO: Fix perm calc
     ``can maximise 1``()
+    
     
 let execute() =
     let prog = File.ReadAllText "Auxi\day7-input.txt" |> parseProgDesc
