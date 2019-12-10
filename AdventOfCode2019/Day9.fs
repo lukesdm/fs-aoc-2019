@@ -1,4 +1,5 @@
 ﻿module AdventOfCode2019.Day9
+open AdventOfCode2019.Day7
 open System.Collections.Generic
 open Shared
 open System
@@ -39,6 +40,7 @@ type Output = Queue<int64>
 type ParamMode =
     | Position = 0
     | Immediate = 1
+    | Relative = 2
 type Value = int64
 type Param = ParamMode * Value
 type Params =
@@ -57,6 +59,7 @@ type OpCode =
     | JumpIfFalse = 6
     | LessThan = 7
     | Equals = 8
+    | RelativeBaseOffset = 9
     | Undefined = 0
 
 type Instruction =
@@ -77,6 +80,7 @@ type Status =
 type NewState =
     | PCOverride of int64
     | Status of Status
+    | NewRelBase of int64
 
 //ABCDE
 // 1002
@@ -101,7 +105,7 @@ let parse (program: Program) (pc: int64) : Instruction =
     let def = { opCode = opCode; opParams = Zilch }
     match opCode with
     | OpCode.Halt -> def
-    | OpCode.Input | OpCode.Output ->
+    | OpCode.Input | OpCode.Output | OpCode.RelativeBaseOffset ->
         { def with opParams = One (modes.[0], program.[pc + 1L])  }
     | OpCode.JumpIfFalse | OpCode.JumpIfTrue ->
         { def with opParams = Two ((modes.[0], program.[pc + 1L]), (modes.[1], program.[pc + 2L])) }
@@ -109,16 +113,17 @@ let parse (program: Program) (pc: int64) : Instruction =
         { def with opParams = Three ((modes.[0], program.[pc + 1L]), (modes.[1], program.[pc + 2L]), (modes.[2], program.[pc + 3L])) }
     | _ -> failwith "Bad input format"
 
-let getArg (mem: Program) (p:Param) =
+let getArg (mem: Program) (relBase: int64) (p:Param) =
     let (mode, v) = p
     match mode with
     | ParamMode.Immediate -> v
     | ParamMode.Position -> mem.[v]
+    | ParamMode.Relative -> mem.[v + relBase]
     | _ -> failwith "Parameter mode unsupported."
  
-let eval (program: Program) (instruction: Instruction) (input: Input) (output: Output) =
+let eval (program: Program) (instruction: Instruction) (input: Input) (output: Output) (relBase: int64) =
     let mutable newState = None
-    let getArg = getArg program // partial application
+    let getArg = getArg program relBase // partial application
     match (instruction.opCode, instruction.opParams) with
     | opCode, Three (in1Param, in2Param, outParam) ->
         let dest = snd outParam //NOT getArg o (see [Note])
@@ -150,6 +155,9 @@ let eval (program: Program) (instruction: Instruction) (input: Input) (output: O
         | OpCode.Output ->
             let value = getArg param
             output.Enqueue(value)
+        | OpCode.RelativeBaseOffset ->
+            let value = snd param // immediate only
+            newState <- Some (NewRelBase (relBase + value)) 
         | _ -> failwith "Unsupported opCode"
     | OpCode.Halt, Zilch -> newState <- Some (Status Halted)
     | _ -> failwith "Unsupported opCode"
@@ -161,15 +169,19 @@ let eval (program: Program) (instruction: Instruction) (input: Input) (output: O
 let run (program : Program) (input: Input) (output: Output) initPc =
     let mutable pc = initPc
     let mutable status = Running
+    let mutable relBase = 0L
 
     while status = Running do
         let instruction = parse program pc
         
-        let newState = eval program instruction input output
+        let newState = eval program instruction input output relBase
         
         match newState with
         | Some (PCOverride pcO) -> pc <- pcO 
         | Some (Status s) -> status <- s
+        | Some (NewRelBase rb) ->
+            relBase <- rb
+            pc <- (pc + int64 instruction.Length) // TODO: DRY
         | None -> pc <- (pc + int64 instruction.Length)
         
     (status, pc)
