@@ -189,15 +189,9 @@ type Phases = int[]
 type Computer = { program: Program; input: Input; output: Output; mutable lastPc: int }  
 let runAll2 (phases: Phases) program =
     let amps =
-        [|
-            [| phases.[0] |]
-            [| phases.[1] |]
-            [| phases.[2] |]
-            [| phases.[3] |]
-            [| phases.[4] |]
-        |]
+        phases
         |> Array.map (fun initIn ->
-            { program = Array.copy program; input = new Input(initIn); output = new Output(); lastPc = 0 } )
+            { program = Array.copy program; input = new Input([| initIn |]); output = new Output(); lastPc = 0 } )
     
     let mutable lastAmpStatus = Running 
     let mutable prevOut = 0
@@ -275,7 +269,7 @@ let maximise2 (program: Program) =
     Day7Data.permutations2
     |> Seq.fold (fun (max: int * Phases) phases ->
         let result = runAll2 phases program
-        (Math.Max (fst max, result), phases)
+        if result > fst max then (result, phases) else max
         ) (Int32.MinValue, Array.empty)
 
 let runTests() =
@@ -327,6 +321,12 @@ let runTests() =
         let expected = (139629729, [| 9; 8; 7; 6; 5 |]) // max signal, and phases that generate it 
         let actual = progDesc |> parseProgDesc |> maximise2
         assert (expected = actual)
+        
+    let ``part 2 example 2`` () =
+        let progDesc = "3,52,1001,52,-5,52,3,53,1,52,56,54,1007,54,5,55,1005,55,26,1001,54,-5,54,1105,1,12,1,53,54,53,1008,54,0,55,1001,55,1,55,2,53,55,53,4,53,1001,56,-1,56,1005,56,6,99,0,0,0,0,10"
+        let expected = (18216, [| 9; 7; 8; 5; 6 |]) // max signal, and phases that generate it 
+        let actual = progDesc |> parseProgDesc |> maximise2
+        assert (expected = actual)
     
     ``part 1 example 1 - echo``()
     ``part 1 example 2``()
@@ -335,6 +335,7 @@ let runTests() =
     ``part 1 - can maximise 1``()
     
     ``part 2 example 1``()
+    ``part 2 example 2``()
     
 let execute1() =
     let prog = File.ReadAllText "Auxi\day7-input.txt" |> parseProgDesc
