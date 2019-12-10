@@ -24,7 +24,8 @@ open System.IO
 type Program = int[]
 
 type Input = Queue<int>
-type Output = ResizeArray<int> // could possibly make this a queue as well, though not essential right now  
+//type Output = ResizeArray<int> // could possibly make this a queue as well, though not essential right now
+type Output = Queue<int>
     
 type ParamMode =
     | Position = 0
@@ -139,7 +140,7 @@ let eval (program: Program) (instruction: Instruction) (input: Input) (output: O
                 newState <- Some (Status WaitingForInput)
         | OpCode.Output ->
             let value = getArg param
-            output.Add(value)
+            output.Enqueue(value)
         | _ -> failwith "Unsupported opCode"
     | OpCode.Halt, Zilch -> newState <- Some (Status Halted)
     | _ -> failwith "Unsupported opCode"
@@ -206,7 +207,7 @@ let runAll2 (phases: Phases) program =
             let (_, status, pc) = run computer.program computer.input computer.output computer.lastPc
             computer.lastPc <- pc 
             lastAmpStatus <- status
-            prevOut <- Seq.last computer.output //Seq.exactlyOne outp (maybe change this to queue)
+            prevOut <- computer.output.Dequeue()
             ) 
     prevOut
 
