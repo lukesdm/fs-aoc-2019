@@ -227,7 +227,7 @@ let maximise1 (program: Program) =
     
     let mutable maxResult = Int32.MinValue 
     
-    Day7.Data.permutations
+    Day7Data.permutations
     |> Seq.iter (fun phases ->
         let result = runAll1 phases 0 program
         maxResult <- Math.Max(result, maxResult)
@@ -238,7 +238,7 @@ let maximise1 (program: Program) =
 type Phases = int[]
 
 let maximise2 (program: Program) =
-    Day7.Data.permutations2
+    Day7Data.permutations2
     |> Seq.fold (fun (max: int * Phases) phases ->
         let result = runAll2 phases 0 program
         (Math.Max (fst max, result), phases)

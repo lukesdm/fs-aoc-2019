@@ -1,4 +1,4 @@
-﻿module AdventOfCode2019.Day7.Data
+﻿module AdventOfCode2019.Day7Data
 
 // possible permutations for phases
 // https://www.wolframalpha.com/input/?i=permutations+of+%7B0%2C+1%2C+2%2C+3%2C+4%7D
