@@ -1,4 +1,6 @@
 ﻿module AdventOfCode2019.Day7
+open System.Collections.Generic
+open System.Collections.Generic
 open AdventOfCode2019
 open Shared
 
@@ -20,7 +22,8 @@ open Shared
 // Program/memory
 type Program = int[]
 
-type Input = int
+// type Input = int
+type Input = Queue<int>
 type Output = ResizeArray<int> 
 //type Computer = Program * Input * Output
     
@@ -121,7 +124,7 @@ let eval (program: Program) (instruction: Instruction) (input: Input) (output: O
         match opCode with
         | OpCode.Input ->
             let dest = snd param //NOT getArg p (see [Note])
-            program.[dest] <- input
+            program.[dest] <- input.Dequeue() // TODO: check this is OK - should successive calls return same value by default?
         | OpCode.Output ->
             let value = getArg param
             output.Add(value)
@@ -152,8 +155,20 @@ let parseProgDesc (desc: string) : Program =
     
 // *****
 
-let runAll phases initialInput program =
-    0 // TODO: Implement
+// At its first input instruction, provide it the amplifier's phase setting, 3.
+// At its second input instruction, provide it the input signal, 0.
+
+//type Amplifier = { program: Program; inSignal: int; inPhase: int; output: Output } 
+let runAll phases initial program =
+    let mutable prevOut: int = initial
+    phases |> Seq.iter (fun phase ->
+        //let ampl = { program = program; inSignal = inSig; inPhase = phase; output = new Output() }
+        let inputBuff = new Input([ phase; prevOut ])
+        let outputBuff = new Output()
+        let _ = run (Array.copy program) inputBuff outputBuff
+        prevOut <- Seq.exactlyOne outputBuff
+        )
+    prevOut
 
 let runTests() =
     let ``example 1 - echo`` () =
@@ -164,6 +179,25 @@ let runTests() =
         let actualOut = parseProgDesc progDesc |> runAll phases initialInput
         assert (expectedOut = actualOut)
         
-    ``example 1 - echo`` ()
+    let ``example 2`` () =
+        let progDesc = "3,23,3,24,1002,24,10,24,1002,23,-1,23,101,5,23,23,1,24,23,23,4,23,99,0,0"
+        let phases = [| 0; 1; 2; 3; 4 |]
+        let initialInput = 0
+        let expectedOut = 54321
+        let actualOut = parseProgDesc progDesc |> runAll phases initialInput
+        assert (expectedOut = actualOut)
+        
+    let ``example 3`` () =
+        let progDesc = "3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0"
+        let phases = [| 1; 0; 4; 3; 2 |]
+        let initialInput = 0
+        let expectedOut = 65210
+        let actualOut = parseProgDesc progDesc |> runAll phases initialInput
+        assert (expectedOut = actualOut)
+    
+    ``example 1 - echo``()
+    ``example 2``()
+    ``example 3``()
+    
         
 
