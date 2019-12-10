@@ -61,6 +61,16 @@ type Instruction =
             | Two (_,_) -> 3 // TODO: can simplify to single _ ?
             | Three (_,_,_)  -> 4
 
+type Status =
+    | Running
+    | WaitingForInput
+    | Halted
+    
+type NewState =
+    | PCOverride of int
+    | Status of Status
+
+
 //ABCDE
 // 1002
 //
@@ -99,7 +109,7 @@ let getArg (mem: Program) (p:Param) =
     | _ -> failwith "Parameter mode unsupported."
  
 let eval (program: Program) (instruction: Instruction) (input: Input) (output: Output) =
-    let mutable pcOverride: int option = None
+    let mutable newState = None
     let getArg = getArg program // partial application
     match (instruction.opCode, instruction.opParams) with
     | opCode, Three (in1Param, in2Param, outParam) ->
@@ -117,38 +127,44 @@ let eval (program: Program) (instruction: Instruction) (input: Input) (output: O
         let newPc = getArg param2
         match opCode with
         | OpCode.JumpIfTrue ->
-            if test <> 0 then pcOverride <- Some newPc
+            if test <> 0 then newState <- Some (PCOverride newPc)
         | OpCode.JumpIfFalse ->
-            if test = 0 then pcOverride <- Some newPc
+            if test = 0 then newState <- Some (PCOverride newPc)
         | _ -> failwith "Unsupported opCode"
     | opCode, One (param) ->
         match opCode with
         | OpCode.Input ->
             let dest = snd param //NOT getArg p (see [Note])
-            program.[dest] <- input.Dequeue()  // (if input.Count > 1 then input.Dequeue() else input.Peek()) // TODO: check this is OK - should successive calls return same value by default?
+            if input.Count > 0 then
+                program.[dest] <- input.Dequeue()
+            else
+                newState <- Some (Status WaitingForInput)
         | OpCode.Output ->
             let value = getArg param
             output.Add(value)
         | _ -> failwith "Unsupported opCode"
-    | OpCode.Halt, Zilch -> ignore()
+    | OpCode.Halt, Zilch -> newState <- Some (Status Halted)
     | _ -> failwith "Unsupported opCode"
     
-    pcOverride
+    newState
 
 // [Note] "Parameters that an instruction writes to will never be in immediate mode."
     
 let run (program : Program) (input: Input) (output: Output) =
     let mutable pc = 0
-    let mutable halt = false
-    while not halt do
+    let mutable status = Running
+
+    while status = Running do
         let instruction = parse program pc 
         
-        let pcOverride = eval program instruction input output
+        let newState = eval program instruction input output
         
-        if instruction.opCode = OpCode.Halt then halt <- true
+        match newState with
+        | Some (PCOverride pcO) -> pc <- pcO
+        | Some (Status s) -> status <- s
+        | None -> pc <- (pc + instruction.Length)
         
-        pc <- if pcOverride.IsNone then (pc + instruction.Length) else pcOverride.Value 
-    program
+    (program, status)
 
 let parseProgDesc (desc: string) : Program =
     desc.Split(",")
