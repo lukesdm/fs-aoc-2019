@@ -1,8 +1,8 @@
 ﻿module AdventOfCode2019.Day7
 open System.Collections.Generic
-open System.Collections.Generic
 open AdventOfCode2019
 open Shared
+open System
 
 // Day 7: Amplification Circuit
 // https://adventofcode.com/2019/day/7
@@ -170,13 +170,27 @@ let runAll phases initial program =
         )
     prevOut
 
+let maximise (program: Program) =
+    
+    let mutable maxResult = Int32.MinValue 
+    
+    // TODO: figure out how to do this with sequence expressions i.e.
+    //  sequence that generates arrays from [|0; 0; 0; 0; 0|] to [|4; 4; 4; 4; 4|]
+    
+    for i in 0..44444 do
+        let phases = i |> intToDigits |> pad0 5
+        let result = runAll phases 0 program
+        maxResult <- Math.Max(result, maxResult)
+        
+    maxResult                    
+
 let runTests() =
+    let progDesc1 = "3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0"
     let ``example 1 - echo`` () =
-        let progDesc = "3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0"
         let phases = [| 4; 3; 2; 1; 0 |]
         let initialInput = 0
         let expectedOut = 43210
-        let actualOut = parseProgDesc progDesc |> runAll phases initialInput
+        let actualOut = parseProgDesc progDesc1 |> runAll phases initialInput
         assert (expectedOut = actualOut)
         
     let ``example 2`` () =
@@ -194,10 +208,17 @@ let runTests() =
         let expectedOut = 65210
         let actualOut = parseProgDesc progDesc |> runAll phases initialInput
         assert (expectedOut = actualOut)
+        
+    let ``can maximise 1`` () =
+        let expected = 44444
+        let prog = parseProgDesc progDesc1
+        let actual = maximise prog
+        assert (expected = actual)
     
     ``example 1 - echo``()
     ``example 2``()
     ``example 3``()
+    ``can maximise 1``()
     
         
 
