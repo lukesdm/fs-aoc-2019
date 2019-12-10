@@ -120,13 +120,26 @@ let getArg (mem: Program) (relBase: int64) (p:Param) =
     | ParamMode.Position -> mem.[v]
     | ParamMode.Relative -> mem.[v + relBase]
     | _ -> failwith "Parameter mode unsupported."
+    
+let getArg2 (mem: Program) (relBase: int64) (p:Param) =
+//let getArg2 (relBase: int64) (p:Param) =
+    // For  'direct access' type instructions/params, which have one less level of indirection
+    let (mode, v) = p
+    match mode with
+    | ParamMode.Position -> v
+    | ParamMode.Relative -> v + relBase // mem.[v + relBase]
+    | ParamMode.Immediate -> failwith "Unexpected parameter mode."
+    | _ -> failwith "Parameter mode unsupported."
  
 let eval (program: Program) (instruction: Instruction) (input: Input) (output: Output) (relBase: int64) =
     let mutable newState = None
     let getArg = getArg program relBase // partial application
+    let getArg2 = getArg2 program relBase
+    //let getArg2 = getArg2 relBase
     match (instruction.opCode, instruction.opParams) with
     | opCode, Three (in1Param, in2Param, outParam) ->
-        let dest = snd outParam //NOT getArg o (see [Note])
+        //let dest = snd outParam //NOT getArg o (see [Note]) // TODO: Check - need to support relative offset for this?
+        let dest = getArg2 outParam
         let in1Val = getArg in1Param
         let in2Val = getArg in2Param
         match opCode with
@@ -147,7 +160,8 @@ let eval (program: Program) (instruction: Instruction) (input: Input) (output: O
     | opCode, One (param) ->
         match opCode with
         | OpCode.Input ->
-            let dest = snd param //NOT getArg p (see [Note])
+            //let dest = snd param //NOT getArg p (see [Note])
+            let dest = getArg2 param
             if input.Count > 0 then
                 program.[dest] <- input.Dequeue()
             else
@@ -156,7 +170,7 @@ let eval (program: Program) (instruction: Instruction) (input: Input) (output: O
             let value = getArg param
             output.Enqueue(value)
         | OpCode.RelativeBaseOffset ->
-            let value = snd param // immediate only
+            let value = snd param // immediate only [?]
             newState <- Some (NewRelBase (relBase + value)) 
         | _ -> failwith "Unsupported opCode"
     | OpCode.Halt, Zilch -> newState <- Some (Status Halted)
@@ -233,4 +247,8 @@ let runTests() =
     
 let execute() =
     let prog = File.ReadAllText "Auxi\day9-input.txt" |> parseProgDesc
-    printfn "Day 9 part 1 result: %d" 0
+    let output = new Output()
+    let _ = run prog (new Input([1L])) output 0L
+    let outVal = output.Dequeue()
+    assert (output.Count = 0)
+    printfn "Day 9 part 1 result: %d" outVal
