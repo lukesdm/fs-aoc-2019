@@ -16,9 +16,23 @@ open System.IO
 
 // sparse vector
 type Program(initialMemory: int64[]) =  
+    let extraMemory = new Dictionary<int64, int64>()
+    
     member this.Item
-        with get (index: int64) = initialMemory.GetValue(index) :?> int64
-        and set (index: int64) (value: int64) = initialMemory.SetValue(value, index)
+        with get (index: int64) =
+            if index < 0L then
+                failwith "Negative indices are not allowed"
+            elif index < initialMemory.LongLength then  
+                initialMemory.GetValue(index) :?> int64
+            else
+                if extraMemory.ContainsKey index then extraMemory.[index] else 0L
+        and set (index: int64) (value: int64) =
+            if index < 0L then
+                failwith "Negative indices are not allowed"
+            elif index < initialMemory.LongLength then  
+                initialMemory.SetValue(value, index)
+            else
+                extraMemory.[index] <- value
 type Input = Queue<int64>
 type Output = Queue<int64>
     
