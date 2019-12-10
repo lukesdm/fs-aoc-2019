@@ -159,17 +159,18 @@ let parseProgDesc (desc: string) : Program =
 // At its first input instruction, provide it the amplifier's phase setting, 3.
 // At its second input instruction, provide it the input signal, 0.
 
-//type Amplifier = { program: Program; inSignal: int; inPhase: int; output: Output } 
-let runAll phases initial program =
+let runAll1 phases initial program =
     let mutable prevOut: int = initial
     phases |> Seq.iter (fun phase ->
-        //let ampl = { program = program; inSignal = inSig; inPhase = phase; output = new Output() }
         let inputBuff = new Input([ phase; prevOut ])
         let outputBuff = new Output()
         let _ = run (Array.copy program) inputBuff outputBuff
         prevOut <- Seq.exactlyOne outputBuff
         )
     prevOut
+    
+let runAll2 phases initial program =
+    0
 
 // works for n <= 12 before hitting int32 limit
 let factorial n = seq { for i in 1..n -> i } |> Seq.reduce (*)
@@ -222,47 +223,56 @@ let permutations (choices: int[]) : seq<int[]> =
             currPerm <- calcNextPerm currPerm
     }
 
-let maximise (program: Program) =
+let maximise1 (program: Program) =
     
     let mutable maxResult = Int32.MinValue 
     
     Day7.Data.permutations
     |> Seq.iter (fun phases ->
-        let result = runAll phases 0 program
+        let result = runAll1 phases 0 program
         maxResult <- Math.Max(result, maxResult)
         )
     
-    maxResult                
+    maxResult
+    
+type Phases = int[]
+
+let maximise2 (program: Program) =
+    Day7.Data.permutations2
+    |> Seq.fold (fun (max: int * Phases) phases ->
+        let result = runAll2 phases 0 program
+        (Math.Max (fst max, result), phases)
+        ) (Int32.MinValue, Array.empty)
 
 let runTests() =
     let progDesc1 = "3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0"
-    let ``example 1 - echo`` () =
+    let ``part 1 example 1 - echo`` () =
         let phases = [| 4; 3; 2; 1; 0 |]
         let initialInput = 0
         let expectedOut = 43210
-        let actualOut = parseProgDesc progDesc1 |> runAll phases initialInput
+        let actualOut = parseProgDesc progDesc1 |> runAll1 phases initialInput
         assert (expectedOut = actualOut)
         
-    let ``example 2`` () =
+    let ``part 1 example 2`` () =
         let progDesc = "3,23,3,24,1002,24,10,24,1002,23,-1,23,101,5,23,23,1,24,23,23,4,23,99,0,0"
         let phases = [| 0; 1; 2; 3; 4 |]
         let initialInput = 0
         let expectedOut = 54321
-        let actualOut = parseProgDesc progDesc |> runAll phases initialInput
+        let actualOut = parseProgDesc progDesc |> runAll1 phases initialInput
         assert (expectedOut = actualOut)
         
-    let ``example 3`` () =
+    let ``part 1 example 3`` () =
         let progDesc = "3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0"
         let phases = [| 1; 0; 4; 3; 2 |]
         let initialInput = 0
         let expectedOut = 65210
-        let actualOut = parseProgDesc progDesc |> runAll phases initialInput
+        let actualOut = parseProgDesc progDesc |> runAll1 phases initialInput
         assert (expectedOut = actualOut)
         
-    let ``can maximise 1`` () =
+    let ``part 1 - can maximise 1`` () =
         let expected = 43210
         let prog = parseProgDesc progDesc1
-        let actual = maximise prog
+        let actual = maximise1 prog
         assert (expected = actual)
     
     let ``can find permutations`` () =
@@ -277,15 +287,25 @@ let runTests() =
         |]
         let actual = choices |> permutations |> Seq.toArray
         assert (expected = actual)
+        
+    let ``part 2 example 1`` () =
+        let progDesc = "3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5"
+        let expected = (139629729, [| 9; 8; 7; 6; 5 |]) // max signal, and phases that generate it 
+        let actual = progDesc |> parseProgDesc |> maximise2
+        assert (expected = actual)
     
-    ``example 1 - echo``()
-    ``example 2``()
-    ``example 3``()
+    ``part 1 example 1 - echo``()
+    ``part 1 example 2``()
+    ``part 1 example 3``()
     // ``can find permutations``() // TODO: Fix perm calc
-    ``can maximise 1``()
+    ``part 1 - can maximise 1``()
+    
+    ``part 2 example 1``()
     
     
-let execute() =
+    
+    
+let execute1() =
     let prog = File.ReadAllText "Auxi\day7-input.txt" |> parseProgDesc
-    let max = maximise prog
+    let max = maximise1 prog
     printfn "Day 7 part 1 result: %d" max
