@@ -25,8 +25,7 @@ type Program = int[]
 
 // type Input = int
 type Input = Queue<int>
-type Output = ResizeArray<int> 
-//type Computer = Program * Input * Output
+type Output = ResizeArray<int> // could possibly make this a queue as well, though not essential right now  
     
 type ParamMode =
     | Position = 0
@@ -149,20 +148,21 @@ let eval (program: Program) (instruction: Instruction) (input: Input) (output: O
     newState
 
 // [Note] "Parameters that an instruction writes to will never be in immediate mode."
-    
-let run (program : Program) (input: Input) (output: Output) =
-    let mutable pc = 0
+
+// type PC = int ref    
+let run (program : Program) (input: Input) (output: Output) = //(pc: PC)
+    let mutable pc = 0 //initPc
     let mutable status = Running
 
     while status = Running do
-        let instruction = parse program pc 
+        let instruction = parse program pc //!pc 
         
         let newState = eval program instruction input output
         
         match newState with
-        | Some (PCOverride pcO) -> pc <- pcO
+        | Some (PCOverride pcO) -> pc <- pcO // pc := pcO 
         | Some (Status s) -> status <- s
-        | None -> pc <- (pc + instruction.Length)
+        | None -> pc <- (pc + instruction.Length) //pc := (!pc + instruction.Length)
         
     (program, status)
 
@@ -180,12 +180,38 @@ let runAll1 phases initial program =
     phases |> Seq.iter (fun phase ->
         let inputBuff = new Input([ phase; prevOut ])
         let outputBuff = new Output()
-        let _ = run (Array.copy program) inputBuff outputBuff
+        let _ = run (Array.copy program) inputBuff outputBuff // (ref 0) 
         prevOut <- Seq.exactlyOne outputBuff
         )
     prevOut
     
-let runAll2 phases initial program =
+type Phases = int[]
+//type Computer = Program * Input * Output
+
+type Computer = Program * Input * Output // * PC
+//type Computer = Program * Input * Output * Status
+//type Computer = { program: Program; input: Input; output: Output; mutable status: Status }  
+let runAll2 (phases: Phases) program =
+    let initSig = 0
+    let amps: seq<Computer> =
+        [|
+            [| phases.[0] |]
+            [| phases.[1] |]
+            [| phases.[2] |]
+            [| phases.[3] |]
+            [| phases.[4] |]
+        |]
+        |> Seq.map ( fun initIn -> Array.copy program, new Input(initIn), new Output() ) //, ref 0 )
+    
+    let mutable lastAmpStatus = Running   //let (_,_,_, lastAmpStatus) = amps |> Seq.last 
+    let mutable prevOut = 0
+    while lastAmpStatus <> Halted do
+        amps |> Seq.iter (fun (prog, inp, outp) -> // , pc) ->
+            inp.Enqueue(prevOut)
+            let (_, status) = run prog inp outp // pc
+            lastAmpStatus <- status
+            prevOut <- Seq.last outp //Seq.exactlyOne outp
+            )
     0
 
 // works for n <= 12 before hitting int32 limit
@@ -251,12 +277,12 @@ let maximise1 (program: Program) =
     
     maxResult
     
-type Phases = int[]
+
 
 let maximise2 (program: Program) =
     Day7Data.permutations2
     |> Seq.fold (fun (max: int * Phases) phases ->
-        let result = runAll2 phases 0 program
+        let result = runAll2 phases program
         (Math.Max (fst max, result), phases)
         ) (Int32.MinValue, Array.empty)
 
