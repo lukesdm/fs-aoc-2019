@@ -17,14 +17,13 @@ open System.IO
 //  run prog
 //  get output
 
-// FROM DAY 5
+// BASED ON DAY 5
 // *****
 
 // Program/memory
 type Program = int[]
 
 type Input = Queue<int>
-//type Output = ResizeArray<int> // could possibly make this a queue as well, though not essential right now
 type Output = Queue<int>
     
 type ParamMode =
@@ -57,8 +56,8 @@ type Instruction =
             match this.opParams with
             | Zilch -> 1
             | One _ -> 2
-            | Two (_,_) -> 3 // TODO: can simplify to single _ ?
-            | Three (_,_,_)  -> 4
+            | Two _ -> 3
+            | Three _  -> 4
 
 type Status =
     | Running

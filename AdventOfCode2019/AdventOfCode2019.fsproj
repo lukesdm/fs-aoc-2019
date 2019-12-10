@@ -22,10 +22,10 @@
         <Content Include="Auxi\day6-input.txt">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <Content Include="Auxi\day8-input.txt">
+        <Content Include="Auxi\day7-input.txt">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <Content Include="Auxi\day7-input.txt">
+        <Content Include="Auxi\day8-input.txt">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
         <Compile Include="Shared.fs" />
@@ -37,10 +37,11 @@
         <Compile Include="Day3.Test.fs" />
         <Compile Include="Day4.fs" />
         <Compile Include="Day5.fs" />
-        <Compile Include="Day8.fs" />
         <Compile Include="Day6.fs" />
         <Compile Include="Day7.Data.fs" />
         <Compile Include="Day7.fs" />
+        <Compile Include="Day8.fs" />
+        <Compile Include="Day9.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 
