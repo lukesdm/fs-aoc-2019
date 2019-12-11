@@ -121,27 +121,26 @@ let getArg (mem: Program) (relBase: int64) (p:Param) =
     | ParamMode.Relative -> mem.[v + relBase]
     | _ -> failwith "Parameter mode unsupported."
     
-let getArg2 (mem: Program) (relBase: int64) (p:Param) =
-//let getArg2 (relBase: int64) (p:Param) =
+let getArg2 (relBase: int64) (p:Param) =
     // For  'direct access' type instructions/params, which have one less level of indirection
+    // "Parameters that an instruction writes to will never be in immediate mode."
     let (mode, v) = p
     match mode with
     | ParamMode.Position -> v
-    | ParamMode.Relative -> v + relBase // mem.[v + relBase]
+    | ParamMode.Relative -> v + relBase
     | ParamMode.Immediate -> failwith "Unexpected parameter mode."
     | _ -> failwith "Parameter mode unsupported."
  
 let eval (program: Program) (instruction: Instruction) (input: Input) (output: Output) (relBase: int64) =
     let mutable newState = None
     let getArg = getArg program relBase // partial application
-    let getArg2 = getArg2 program relBase
-    //let getArg2 = getArg2 relBase
+    let getArg2 = getArg2 relBase // partial application
     match (instruction.opCode, instruction.opParams) with
     | opCode, Three (in1Param, in2Param, outParam) ->
-        //let dest = snd outParam //NOT getArg o (see [Note]) // TODO: Check - need to support relative offset for this?
         let dest = getArg2 outParam
         let in1Val = getArg in1Param
         let in2Val = getArg in2Param
+        printfn "%A" (instruction, in1Val, in2Val, dest)
         match opCode with
         | OpCode.Add -> program.[dest] <- in1Val + in2Val
         | OpCode.Multiply -> program.[dest] <- in1Val * in2Val
@@ -151,6 +150,7 @@ let eval (program: Program) (instruction: Instruction) (input: Input) (output: O
     | opCode, Two (param1, param2) ->
         let test = getArg param1
         let newPc = getArg param2
+        printfn "%A" (instruction, test, newPc)
         match opCode with
         | OpCode.JumpIfTrue ->
             if test <> 0L then newState <- Some (PCOverride newPc)
@@ -160,25 +160,27 @@ let eval (program: Program) (instruction: Instruction) (input: Input) (output: O
     | opCode, One (param) ->
         match opCode with
         | OpCode.Input ->
-            //let dest = snd param //NOT getArg p (see [Note])
             let dest = getArg2 param
+            printfn "%A" (instruction, dest)
             if input.Count > 0 then
                 program.[dest] <- input.Dequeue()
             else
                 newState <- Some (Status WaitingForInput)
         | OpCode.Output ->
             let value = getArg param
+            printfn "%A" (instruction, value)
             output.Enqueue(value)
         | OpCode.RelativeBaseOffset ->
-            let value = snd param // immediate only [?]
+            let value = getArg param
+            printfn "%A" (instruction, value)
             newState <- Some (NewRelBase (relBase + value)) 
         | _ -> failwith "Unsupported opCode"
-    | OpCode.Halt, Zilch -> newState <- Some (Status Halted)
+    | OpCode.Halt, Zilch ->
+        printfn "%A" instruction
+        newState <- Some (Status Halted)
     | _ -> failwith "Unsupported opCode"
     
     newState
-
-// [Note] "Parameters that an instruction writes to will never be in immediate mode."
 
 let run (program : Program) (input: Input) (output: Output) initPc =
     let mutable pc = initPc
@@ -251,4 +253,4 @@ let execute() =
     let _ = run prog (new Input([1L])) output 0L
     let outVal = output.Dequeue()
     assert (output.Count = 0)
-    printfn "Day 9 part 1 result: %d" outVal
+    printfn "Day 9 part 1 result: %d" outVal // 2932210790 confirmed correct
