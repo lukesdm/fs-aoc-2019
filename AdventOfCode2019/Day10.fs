@@ -41,9 +41,30 @@ let isOccluded p1 p2 (points: Points) =
         curr <- addP curr march
     occluded
 
-// type Grid = ...
-let parse input =
-    [|0|]
+type Asteroid = Point
+type Asteroids = Set<Asteroid>
+let parse (input: string) : Asteroids =
+    
+    let lineFolder (x, y, asteroidsOnLine) char =
+        ( x + 1,
+          y,
+          if (char = '#') then
+                Asteroid (x, y) :: asteroidsOnLine
+            else
+                asteroidsOnLine
+        )
+    
+    let gridFolder (y, asteroidsOnGrid) line =
+        let (_, _, asteroidsOnLine) = line |> Seq.fold lineFolder (0, y, [])
+        (y + 1, List.append asteroidsOnGrid asteroidsOnLine)
+    
+    let (_,asteroids) =
+        input.Replace("\r", "")
+            .Split("\n")
+        |> Seq.fold gridFolder (0, [])
+    
+    Set.ofList asteroids
+    
 
 let findBest grid =
     (0, (0,0))
@@ -103,6 +124,12 @@ let runTests () =
         let actual = isOccluded p1 p2 (Set.ofList [p3])
         assert (expected = actual)
     
+    let ``Parse input - small`` () =
+        let input = Day10_Data.small1
+        let expected = Set.ofArray [| (0,0); (2,1); (1,2); (3,1) |]
+        let actual = parse input
+        assert (expected = actual) 
+    
     let ``example 1 - find best`` () =
         let expected = (8, (3,4))  // Best = 8 from (3,4)
         let actual = example1 |> parse |> findBest
@@ -117,6 +144,7 @@ let runTests () =
     ``Marching vector - rectangular``()
     ``Occlusion check - hit``()
     ``Occlusion check - miss``()
+    ``Parse input - small``()
     //``example 1 - find best`` ()
     
     

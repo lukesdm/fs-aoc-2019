@@ -1,5 +1,9 @@
 ﻿module AdventOfCode2019.Day10_Data
 
+let small1 = "#...
+..##
+.#.."
+
 // Best = 8 from (3,4)
 let example1 = ".#..#
 .....
