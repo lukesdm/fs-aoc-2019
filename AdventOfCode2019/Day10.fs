@@ -30,8 +30,8 @@ let calcMarchingVector (p1: Point) (p2: Point) : Vector =
 
 //let isOccluded p1 p2 p3 = // won't know what p3 is!
 
+/// Whether P2 is occluded from P1 by another point.
 let isOccluded p1 p2 (points: Points) =
-    // Whether P2 is occluded from P1 by another point.
     // March from p2 towards p1, checking for existence of point
     let march = calcMarchingVector p1 p2
     let mutable curr = addP p2 march
@@ -66,8 +66,19 @@ let parse (input: string) : Asteroids =
     Set.ofList asteroids
     
 
-let findBest grid =
-    (0, (0,0))
+let countVisible (asteroids: Asteroids) (a1: Asteroid) =
+    asteroids.Remove(a1) // don't count self
+    |> Seq.filter (fun a2 -> isOccluded a1 a2 asteroids = false)
+    |> Seq.length 
+
+let findBest (asteroids: Asteroids) =
+    // find asteroid with maximum number of non-occluded asteroids
+    asteroids |> Seq.fold ( fun (best, bestCount) a1 ->
+        let count = countVisible asteroids a1
+        if count > bestCount then
+            (a1, count) // new best
+        else (best, bestCount)
+        ) ((0, 0), 0) // TODO: clearer initial state
 
 let runTests () =
     let ``HCF calc - happy path`` () =
@@ -131,7 +142,7 @@ let runTests () =
         assert (expected = actual) 
     
     let ``example 1 - find best`` () =
-        let expected = (8, (3,4))  // Best = 8 from (3,4)
+        let expected = ((3,4), 8)  // Best = 8 from (3,4)
         let actual = example1 |> parse |> findBest
         assert (expected = actual)
         
@@ -145,6 +156,6 @@ let runTests () =
     ``Occlusion check - hit``()
     ``Occlusion check - miss``()
     ``Parse input - small``()
-    //``example 1 - find best`` ()
+    ``example 1 - find best`` ()
     
     
