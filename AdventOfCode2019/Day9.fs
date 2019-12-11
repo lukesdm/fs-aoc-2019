@@ -132,6 +132,7 @@ let getArg2 (relBase: int64) (p:Param) =
     | _ -> failwith "Parameter mode unsupported."
  
 let eval (program: Program) (instruction: Instruction) (input: Input) (output: Output) (relBase: int64) =
+    let printfn _ _ = () // turn off logging for perf
     let mutable newState = None
     let getArg = getArg program relBase // partial application
     let getArg2 = getArg2 relBase // partial application
@@ -247,10 +248,18 @@ let runTests() =
     ``example 2 - large multiply`` ()
     ``example 3 - large output`` ()
     
-let execute() =
+let execute1() =
     let prog = File.ReadAllText "Auxi\day9-input.txt" |> parseProgDesc
     let output = new Output()
     let _ = run prog (new Input([1L])) output 0L
     let outVal = output.Dequeue()
     assert (output.Count = 0)
     printfn "Day 9 part 1 result: %d" outVal // 2932210790 confirmed correct
+    
+let execute2() =
+    let prog = File.ReadAllText "Auxi\day9-input.txt" |> parseProgDesc
+    let output = new Output()
+    let _ = run prog (new Input([2L])) output 0L
+    let outVal = output.Dequeue()
+    assert (output.Count = 0)
+    printfn "Day 9 part 2 result: %d" outVal // 73144 confirmed correct
