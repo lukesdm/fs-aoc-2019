@@ -80,6 +80,26 @@ let findBest (asteroids: Asteroids) =
         else (best, bestCount)
         ) ((0, 0), 0) // TODO: clearer initial state
 
+// PART 2...
+// custom ordering based on rotation from vertical
+type D = int // depth
+type O1 = int // geometric order 1
+type O2 = int // geometric order 2
+type Key = D * O1 * O2 
+let calcOrderKey p0 pOther =
+    let mv = calcMarchingVector p0 pOther
+    new Key (1, fst mv, snd mv)
+//    match mv with
+//    | (x, y) when x > 0 && y >= 0 -> new Key (1, x, y) // TODO: work these out properly
+//    | (x, y) when x > 0 && y < 0 -> new Key (1, x, -y) // TODO: work these out properly
+//    | _ -> failwith "unexpected input." // TODO: get rid of this
+     
+
+let getOrderedPoints p0 points =
+     let calcOrder = calcOrderKey p0
+     let kvps = points |> Seq.map (fun p -> (calcOrder p), p)
+     Map.ofSeq kvps 
+
 let runTests () =
     let ``HCF calc - happy path`` () =
         let expected = 6
@@ -161,6 +181,30 @@ let runTests () =
         let actual = example4 |> parse |> findBest
         assert (expected = actual)
         
+    // Part 2 tests
+    let ``can order based on rotation from vertical`` () =
+        // clockwise rotation from grid-wise up (not cartesian up)
+        
+        let p0 = (4,5)  // centre point
+        let points = [
+            // Various quadrants and some along axes
+            (9,7); (4,8); (3,6); (2,5)
+            (4,3); (5,1); (6,4); (9,5)
+            (2,4); (3,1); (6,7);
+        ]
+        let actual = getOrderedPoints p0 points |> Map.toSeq |> Seq.map (fun (_, point) -> point )
+        let expected = seq<Point> [
+            (4,3); (5,1); (6,4); (9,5)
+            (9,7); (6,7); (4,8); (3,6)
+            (2,5); (2,4); (3,1)
+        ]
+        
+        assert (expected = actual)
+        
+        // TODO: Next test - D
+         
+    
+        
     ``HCF calc - happy path``()
     ``HCF calc - rev``()
     ``HCF calc - with prime``()
@@ -175,6 +219,7 @@ let runTests () =
     ``example 2 - find best`` ()
     ``example 3 - find best`` ()
     ``example 4 - find best`` ()
+    ``can order based on rotation from vertical``()
     
 let execute () =
     let result = problemInput |> parse |> findBest
