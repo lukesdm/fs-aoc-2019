@@ -13,6 +13,13 @@ type X = int
 type Y = int
 type Point = X * Y
 type Vector = X * Y
+
+type Points = Set<Point> // prob want to make this a Dictionary at some point
+
+let addP ((x1, y1) : Point) ((x2, y2) : Point) =
+    // Add 2 points
+    (x1 + x2, y1 + y2)
+
 let calcMarchingVector (p1: Point) (p2: Point) : Vector =
     // Calculate marching vector - the increment to check for occlusion between 2 points
     // Note reversal - march backwards from p2 towards p1
@@ -20,7 +27,20 @@ let calcMarchingVector (p1: Point) (p2: Point) : Vector =
     let dy = (snd p1) - (snd p2)
     let scale = calcHCF (Math.Abs(dx)) (Math.Abs(dy))
     (dx / scale, dy / scale)
-        
+
+//let isOccluded p1 p2 p3 = // won't know what p3 is!
+
+let isOccluded p1 p2 (points: Points) =
+    // Whether P2 is occluded from P1 by another point.
+    // March from p2 towards p1, checking for existence of point
+    let march = calcMarchingVector p1 p2
+    let mutable curr = addP p2 march
+    let mutable occluded = false
+    while (curr <> p1 && not occluded) do
+        occluded <- points.Contains(curr)
+        curr <- addP curr march
+    occluded
+
 // type Grid = ...
 let parse input =
     [|0|]
@@ -65,6 +85,24 @@ let runTests () =
         let actual = calcMarchingVector p1 p2
         assert (expected = actual)
     
+    let ``Occlusion check - hit`` () =
+        // p3 occludes p2 from p1 i.e. p2 is occluded by p3
+        let p1 = (3, 2)
+        let p2 = (-1, -4)
+        let p3 = (1, -1)
+        let expected = true
+        let actual = isOccluded p1 p2 (Set.ofList [p3])
+        assert (expected = actual)
+        
+    let ``Occlusion check - miss`` () =
+        // p2 is NOT occluded
+        let p1 = (3, 2)
+        let p2 = (-1, -4)
+        let p3 = (1, 0)
+        let expected = false
+        let actual = isOccluded p1 p2 (Set.ofList [p3])
+        assert (expected = actual)
+    
     let ``example 1 - find best`` () =
         let expected = (8, (3,4))  // Best = 8 from (3,4)
         let actual = example1 |> parse |> findBest
@@ -77,6 +115,8 @@ let runTests () =
     ``Marching vector - divisor 1``()
     ``Marching vector - divisor 2``()
     ``Marching vector - rectangular``()
+    ``Occlusion check - hit``()
+    ``Occlusion check - miss``()
     //``example 1 - find best`` ()
     
     
