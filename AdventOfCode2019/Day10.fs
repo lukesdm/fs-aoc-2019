@@ -27,8 +27,6 @@ let calcMarchingVector (p1: Point) (p2: Point) : Vector =
     let scale = calcHCF (Math.Abs(dx)) (Math.Abs(dy))
     (dx / scale, dy / scale)
 
-//let isOccluded p1 p2 p3 = // won't know what p3 is!
-
 /// Whether P2 is occluded from P1 by another point.
 let isOccluded p1 p2 (points: Points) =
     // March from p1 towards p2, checking for existence of point
@@ -81,17 +79,28 @@ let findBest (asteroids: Asteroids) =
 
 // PART 2...
 // custom ordering based on rotation from vertical
-type D = int // depth
+type D = int // depth i.e. number of occluding points
 type O1 = int // geometric order 1 - quadrant
 type O2 = float // geometric order 2 - slope
 //type O3 = int
 type Key = D * O1 * O2// * O3
-let calcOrderKey p0 pOther =
-    // Calculates order based on rotational distance, using slope of marching vector.
-    let mv = calcMarchingVector p0 pOther
-    printfn "P0 = %A P1= %A MV = %A" p0 pOther mv
 
-    let d = 1 // TODO: calculate
+/// Calculates depth i.e. number of occluding points
+let calcDepth mv p1 p2 (points: Points) =
+    // March from p1 towards p2, checking for existence of point
+    let mutable curr = addP p1 mv
+    let mutable depth = 0
+    while (curr <> p2) do
+        if points.Contains(curr) then
+            depth <- depth + 1 
+        curr <- addP curr mv
+    depth
+
+let calcOrderKey p1 p2 points =
+    // Calculates order based on rotational distance, using slope of marching vector.
+    let mv = calcMarchingVector p1 p2
+    let d = calcDepth mv p1 p2 (Set.remove p1 points)
+    //printfn "P0 = %A P1= %A MV = %A" p0 pOther mv
     
     let slope = float (snd mv) / float (fst mv)
     
@@ -102,9 +111,9 @@ let calcOrderKey p0 pOther =
     | (x, y) when x < 0 && y <= 0 -> new Key (d, 3, slope) // 4th quadrant
     | _ -> failwith "unexpected input." 
       
-let getOrderedPoints p0 points =
-     let calcOrder = calcOrderKey p0
-     let kvps = points |> Seq.map (fun p -> (calcOrder p), p)
+let getOrderedPoints p1 points =
+     //let calcOrder = calcOrderKey p0 points
+     let kvps = points |> Seq.map (fun p2 -> (calcOrderKey p1 p2 points), p2)
      Map.ofSeq kvps 
 
 let runTests () =
@@ -192,19 +201,20 @@ let runTests () =
     let ``can order based on rotation from vertical`` () =
         // clockwise rotation from grid-wise up (not cartesian up)
         
-        let p0 = (4,5)  // centre point
+        let p1 = (4,5)  // centre point
         let points = [
             // Various quadrants and some along axes
             (9,7); (4,8); (3,6); (2,5)
             (4,3); (5,1); (6,4); (9,5)
             (2,4); (3,1); (6,7);
+            (4,10) // occluded
         ]
         let expected = [
             (4,3); (5,1); (6,4); (9,5)
             (9,7); (6,7); (4,8); (3,6)
-            (2,5); (2,4); (3,1)
+            (2,5); (2,4); (3,1); (4, 10)
         ]
-        let pointMap = getOrderedPoints p0 points
+        let pointMap = getOrderedPoints p1 (Set.ofList points)
         let actual = pointMap |> Map.toList |> List.map (fun (_, point) -> point )
         
         assert (expected = actual)
