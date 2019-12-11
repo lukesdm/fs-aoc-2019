@@ -146,6 +146,21 @@ let runTests () =
         let actual = example1 |> parse |> findBest
         assert (expected = actual)
         
+    let ``example 2 - find best`` () =
+        let expected = ((5,8), 33)  // Best = 33 from (5,8)
+        let actual = example2 |> parse |> findBest
+        assert (expected = actual)
+        
+    let ``example 3 - find best`` () =
+        let expected = ((1,2), 35)  // Best = 35 from (1,2)
+        let actual = example3 |> parse |> findBest
+        assert (expected = actual)
+        
+    let ``example 4 - find best`` () =
+        let expected = ((6,3), 41)  // Best = 41 from (6,3)
+        let actual = example4 |> parse |> findBest
+        assert (expected = actual)
+        
     ``HCF calc - happy path``()
     ``HCF calc - rev``()
     ``HCF calc - with prime``()
@@ -157,5 +172,10 @@ let runTests () =
     ``Occlusion check - miss``()
     ``Parse input - small``()
     ``example 1 - find best`` ()
+    ``example 2 - find best`` ()
+    ``example 3 - find best`` ()
+    ``example 4 - find best`` ()
     
-    
+let execute () =
+    let result = problemInput |> parse |> findBest
+    printfn "Day 10 part 1 result = %A" result // 309 verified correct

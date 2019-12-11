@@ -70,6 +70,7 @@ let main argv =
 //    Day9.execute2()
     
     Day10.runTests()
+    Day10.execute()
     
     // if we get here, everything is OK - all tests passed (no assertions failed).  
     0
