@@ -22,9 +22,8 @@ let addP ((x1, y1) : Point) ((x2, y2) : Point) =
 
 let calcMarchingVector (p1: Point) (p2: Point) : Vector =
     // Calculate marching vector - the increment to check for occlusion between 2 points
-    // Note reversal - march backwards from p2 towards p1
-    let dx = (fst p1) - (fst p2)
-    let dy = (snd p1) - (snd p2)
+    let dx = (fst p2) - (fst p1)
+    let dy = (snd p2) - (snd p1)
     let scale = calcHCF (Math.Abs(dx)) (Math.Abs(dy))
     (dx / scale, dy / scale)
 
@@ -32,11 +31,11 @@ let calcMarchingVector (p1: Point) (p2: Point) : Vector =
 
 /// Whether P2 is occluded from P1 by another point.
 let isOccluded p1 p2 (points: Points) =
-    // March from p2 towards p1, checking for existence of point
+    // March from p1 towards p2, checking for existence of point
     let march = calcMarchingVector p1 p2
-    let mutable curr = addP p2 march
+    let mutable curr = addP p1 march
     let mutable occluded = false
-    while (curr <> p1 && not occluded) do
+    while (curr <> p2 && not occluded) do
         occluded <- points.Contains(curr)
         curr <- addP curr march
     occluded
@@ -119,21 +118,21 @@ let runTests () =
     let ``Marching vector - divisor 2`` () =
         let p1 = (3,2)
         let p2 = (-1, -4)
-        let expected = (2, 3) // marches backwards from p2
+        let expected = (-2, -3)
         let actual = calcMarchingVector p1 p2
         assert (expected = actual)
         
     let ``Marching vector - divisor 1`` () =
         let p1 = (1,1)
         let p2 = (8,2)
-        let expected = (-7, -1)
+        let expected = (7, 1)
         let actual = calcMarchingVector p1 p2
         assert (expected = actual)
         
     let ``Marching vector - rectangular`` () =
         let p1 = (-1,-2)
         let p2 = (-1, 3)
-        let expected = (0,-1)
+        let expected = (0, 1)
         let actual = calcMarchingVector p1 p2
         assert (expected = actual)
     
@@ -192,7 +191,8 @@ let runTests () =
             (4,3); (5,1); (6,4); (9,5)
             (2,4); (3,1); (6,7);
         ]
-        let actual = getOrderedPoints p0 points |> Map.toSeq |> Seq.map (fun (_, point) -> point )
+        let pointMap = getOrderedPoints p0 points
+        let actual = pointMap |> Map.toSeq |> Seq.map (fun (_, point) -> point )
         let expected = seq<Point> [
             (4,3); (5,1); (6,4); (9,5)
             (9,7); (6,7); (4,8); (3,6)
@@ -223,4 +223,4 @@ let runTests () =
     
 let execute () =
     let result = problemInput |> parse |> findBest
-    printfn "Day 10 part 1 result = %A" result // 309 verified correct
+    printfn "Day 10 part 1 result = %A" result // 309 verified correct (pos 37, 25)
