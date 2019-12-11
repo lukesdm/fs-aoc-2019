@@ -31,6 +31,7 @@
         <Content Include="Auxi\day9-input.txt">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
+        <Content Include="Auxi\day10-input.txt" />
         <Compile Include="Shared.fs" />
         <Compile Include="Day1.fs" />
         <Compile Include="Day1.Test.fs" />
@@ -45,6 +46,8 @@
         <Compile Include="Day7.fs" />
         <Compile Include="Day8.fs" />
         <Compile Include="Day9.fs" />
+        <Compile Include="Day10.Data.fs" />
+        <Compile Include="Day10.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 

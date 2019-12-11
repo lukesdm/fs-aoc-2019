@@ -19,55 +19,57 @@ let main argv =
         Day3Test.``Can calculate distance``
         Day3Test.``Can read input``
     ]
-    printfn "Test count: %d" tests.Length
     
-    printfn "Day 1 part 1 result: %d" Day1.total1 // 3369286 verified as correct
-    printfn "Day 1 part 2 result: %d" Day1.total2 // 5051054 verified as correct
+//    printfn "Test count: %d" tests.Length
+//    
+//    printfn "Day 1 part 1 result: %d" Day1.total1 // 3369286 verified as correct
+//    printfn "Day 1 part 2 result: %d" Day1.total2 // 5051054 verified as correct
+//    
+//    let endState = Day2.run Day2.initForPart1
+//    printfn "Day 2 part 1 result: %d" endState.[0] // 3765464 verified as correct
+//    
+//    let d2p2 = Day2.test
+//    printfn "Day 2 part 2 result: %d (output was %d)" (100 * d2p2.Noun + d2p2.Verb) d2p2.Output
+//    
+//    let d3p1 = Day3.test1
+//    printfn "Day 3 part 1 result: %d" d3p1 // 1211 verified as correct
+//    
+//    let _, d3p2 = Day3.test2
+//    printfn "Day 3 part 2 result: %d" d3p2
+//    
+//    // Day 4
+//    printf "%s" Day4.hello
+//    let d4p1 = Day4.calc1
+//    printfn "Day 4 part 1 result: %d" d4p1 // 1660 verified as correct
+//
+//    let d4p2 = Day4.calc2
+//    printfn "Day 4 part 2 result: %d" d4p2 // 1135 verified as correct
+//    
+//    printf "%s" Day5.hello
+//    
+//    Day5.execute1() |> ignore
+//    
+//    Day5.runTests2()
+//    
+//    Day5.execute2() |> ignore
+//    
+//    Day8.runTests()
+//    Day8.execute()
+//    
+//    Day6.``tests - example part 1``()
+//    Day6.``tests - example part 2``()
+//    Day6.execute1()
+//    Day6.execute2()
+//    
+//    Day7.runTests()
+//    Day7.execute1()
+//    Day7.execute2()
+//    
+//    Day9.runTests()
+//    Day9.execute1()
+//    Day9.execute2()
     
-    let endState = Day2.run Day2.initForPart1
-    printfn "Day 2 part 1 result: %d" endState.[0] // 3765464 verified as correct
-    
-    let d2p2 = Day2.test
-    printfn "Day 2 part 2 result: %d (output was %d)" (100 * d2p2.Noun + d2p2.Verb) d2p2.Output
-    
-    let d3p1 = Day3.test1
-    printfn "Day 3 part 1 result: %d" d3p1 // 1211 verified as correct
-    
-    let _, d3p2 = Day3.test2
-    printfn "Day 3 part 2 result: %d" d3p2
-    
-    // Day 4
-    printf "%s" Day4.hello
-    let d4p1 = Day4.calc1
-    printfn "Day 4 part 1 result: %d" d4p1 // 1660 verified as correct
-
-    let d4p2 = Day4.calc2
-    printfn "Day 4 part 2 result: %d" d4p2 // 1135 verified as correct
-    
-    printf "%s" Day5.hello
-    
-    Day5.execute1() |> ignore
-    
-    Day5.runTests2()
-    
-    Day5.execute2() |> ignore
-    
-    Day8.runTests()
-    Day8.execute()
-    
-    Day6.``tests - example part 1``()
-    Day6.``tests - example part 2``()
-    Day6.execute1()
-    Day6.execute2()
-    
-    Day7.runTests()
-    Day7.execute1()
-    Day7.execute2()
-    
-    Day9.runTests()
-    Day9.execute1()
-    Day9.execute2()
-    
+    Day10.runTests()
     
     // if we get here, everything is OK - all tests passed (no assertions failed).  
     0
