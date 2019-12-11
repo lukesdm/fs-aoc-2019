@@ -14,10 +14,9 @@ type Y = int
 type Point = X * Y
 type Vector = X * Y
 
-type Points = Set<Point> // prob want to make this a Dictionary at some point
+type Points = Set<Point>
 
-let addP ((x1, y1) : Point) ((x2, y2) : Point) =
-    // Add 2 points
+let addPoints ((x1, y1) : Point) ((x2, y2) : Point) =
     (x1 + x2, y1 + y2)
 
 let calcMarchingVector (p1: Point) (p2: Point) : Vector =
@@ -31,11 +30,11 @@ let calcMarchingVector (p1: Point) (p2: Point) : Vector =
 let isOccluded p1 p2 (points: Points) =
     // March from p1 towards p2, checking for existence of point
     let march = calcMarchingVector p1 p2
-    let mutable curr = addP p1 march
+    let mutable curr = addPoints p1 march
     let mutable occluded = false
     while (curr <> p2 && not occluded) do
         occluded <- points.Contains(curr)
-        curr <- addP curr march
+        curr <- addPoints curr march
     occluded
 
 type Asteroid = Point
@@ -82,25 +81,23 @@ let findBest (asteroids: Asteroids) =
 type D = int // depth i.e. number of occluding points
 type O1 = int // geometric order 1 - quadrant
 type O2 = float // geometric order 2 - slope
-//type O3 = int
-type Key = D * O1 * O2// * O3
+type Key = D * O1 * O2
 
 /// Calculates depth i.e. number of occluding points
 let calcDepth mv p1 p2 (points: Points) =
     // March from p1 towards p2, checking for existence of point
-    let mutable curr = addP p1 mv
+    let mutable curr = addPoints p1 mv
     let mutable depth = 0
     while (curr <> p2) do
         if points.Contains(curr) then
             depth <- depth + 1 
-        curr <- addP curr mv
+        curr <- addPoints curr mv
     depth
 
 let calcOrderKey p1 p2 points =
     // Calculates order based on rotational distance, using slope of marching vector.
     let mv = calcMarchingVector p1 p2
-    let d = calcDepth mv p1 p2 (Set.remove p1 points)
-    //printfn "P0 = %A P1= %A MV = %A" p0 pOther mv
+    let d = calcDepth mv p1 p2 points
     
     let slope = float (snd mv) / float (fst mv)
     
@@ -112,7 +109,7 @@ let calcOrderKey p1 p2 points =
     | _ -> failwith "unexpected input." 
       
 let getOrderedPoints p1 points =
-     //let calcOrder = calcOrderKey p0 points
+     let points = Set.remove p1 points // exclude self
      let kvps = points |> Seq.map (fun p2 -> (calcOrderKey p1 p2 points), p2)
      Map.ofSeq kvps 
 
@@ -206,20 +203,18 @@ let runTests () =
             // Various quadrants and some along axes
             (9,7); (4,8); (3,6); (2,5)
             (4,3); (5,1); (6,4); (9,5)
-            (2,4); (3,1); (6,7);
-            (4,10) // occluded
+            (2,4); (3,1); (6,7); (4,10)
         ]
         let expected = [
             (4,3); (5,1); (6,4); (9,5)
             (9,7); (6,7); (4,8); (3,6)
-            (2,5); (2,4); (3,1); (4, 10)
+            (2,5); (2,4); (3,1);
+            (4, 10) // occluded - should be last
         ]
         let pointMap = getOrderedPoints p1 (Set.ofList points)
         let actual = pointMap |> Map.toList |> List.map (fun (_, point) -> point )
         
         assert (expected = actual)
-        
-        // TODO: Next test - D
          
     
         
@@ -239,6 +234,13 @@ let runTests () =
     ``example 4 - find best`` ()
     ``can order based on rotation from vertical``()
     
-let execute () =
+let execute1 () =
     let result = problemInput |> parse |> findBest
     printfn "Day 10 part 1 result = %A" result // 309 verified correct (pos 37, 25)
+    
+let execute2 () =
+    let asteroids = problemInput |> parse 
+    let best = asteroids |> findBest
+    let orderedPoints = getOrderedPoints (fst best) asteroids
+    let result = Seq.item 199 orderedPoints
+    printfn "Day 10 part 2 result = %A" result // (4, 16) (416) verified correct
