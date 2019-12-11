@@ -82,18 +82,26 @@ let findBest (asteroids: Asteroids) =
 // PART 2...
 // custom ordering based on rotation from vertical
 type D = int // depth
-type O1 = int // geometric order 1
-type O2 = int // geometric order 2
-type Key = D * O1 * O2 
+type O1 = int // geometric order 1 - quadrant
+type O2 = float // geometric order 2 - slope
+//type O3 = int
+type Key = D * O1 * O2// * O3
 let calcOrderKey p0 pOther =
+    // Calculates order based on rotational distance, using slope of marching vector.
     let mv = calcMarchingVector p0 pOther
-    new Key (1, fst mv, snd mv)
-//    match mv with
-//    | (x, y) when x > 0 && y >= 0 -> new Key (1, x, y) // TODO: work these out properly
-//    | (x, y) when x > 0 && y < 0 -> new Key (1, x, -y) // TODO: work these out properly
-//    | _ -> failwith "unexpected input." // TODO: get rid of this
-     
+    printfn "P0 = %A P1= %A MV = %A" p0 pOther mv
 
+    let d = 1 // TODO: calculate
+    
+    let slope = float (snd mv) / float (fst mv)
+    
+    match (mv) with
+    | (x, y) when x >= 0 && y <= 0 -> new Key (d, 0, slope) // 1st quadrant
+    | (x, y) when x >= 0 && y > 0 -> new Key (d, 1, slope) // 2nd quadrant
+    | (x, y) when x < 0 && y > 0 -> new Key (d, 2, slope) // 3rd quadrant
+    | (x, y) when x < 0 && y <= 0 -> new Key (d, 3, slope) // 4th quadrant
+    | _ -> failwith "unexpected input." 
+      
 let getOrderedPoints p0 points =
      let calcOrder = calcOrderKey p0
      let kvps = points |> Seq.map (fun p -> (calcOrder p), p)
@@ -191,13 +199,13 @@ let runTests () =
             (4,3); (5,1); (6,4); (9,5)
             (2,4); (3,1); (6,7);
         ]
-        let pointMap = getOrderedPoints p0 points
-        let actual = pointMap |> Map.toSeq |> Seq.map (fun (_, point) -> point )
-        let expected = seq<Point> [
+        let expected = [
             (4,3); (5,1); (6,4); (9,5)
             (9,7); (6,7); (4,8); (3,6)
             (2,5); (2,4); (3,1)
         ]
+        let pointMap = getOrderedPoints p0 points
+        let actual = pointMap |> Map.toList |> List.map (fun (_, point) -> point )
         
         assert (expected = actual)
         
