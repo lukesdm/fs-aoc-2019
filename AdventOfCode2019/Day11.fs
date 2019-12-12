@@ -208,6 +208,45 @@ let parseProgDesc (desc: string) : Program =
     
 // *****
 
+type X = int
+type Y = int
+type Point = X * Y
+type Vector = X * Y
+
+type Points = Set<Point>
+
+/// Direction of turn i.e. relative
+type Turn =
+    | Left = 0
+    | Right = 1
+    
+// Direction of orientation i.e. absolute
+//type Direction =
+//    | Up
+//    | Down
+//    | Left
+//    | Right
+    
+type Colour =
+    | Black = 0
+    | White = 1
+     
+
+//type Panel = Point * Colour
+
+let up = Vector (0, 1)
+let down = Vector (0, -1)
+let right = Vector (1, 0)
+let left = Vector (-1, 0)
+
+//let (|Up|) = Vector (0, 1)
+//let (|Down|) = Vector (0, -1)
+//let (|Right|) = Vector (1, 0)
+//let (|Left|) = Vector (-1, 0)
+    
+let move ((posX, posY): Point) ((dirX, dirY): Vector) =
+    (posX + dirX, posY + dirY) 
+
 let runTests() =
     // Some tests from Day 9 - regression checks
     let ``day 9 example 1 - quine`` () =
@@ -262,8 +301,59 @@ let runTests() =
     ``day 11 callback test``()
     
 let execute1() =
-    let prog = File.ReadAllText "Auxi\day11-input.txt" |> parseProgDesc
-    let panelCount = 0
-    let _ = run prog (new Input()) (new Output()) 0L
-    assert (panelCount > 0)
-    printfn "Day 11 part 1 result: %d" panelCount
+    let prog =
+            File.ReadAllText "Auxi\day11-input.txt"
+            |> parseProgDesc
+            
+    let panels = new Dictionary<Point, Colour>() // panels covered
+    
+    let mutable pos = Point (0,0)
+    let mutable direction = Vector (0,1) // up
+    let buffer = new Queue<int64>() // buffer to hold 2 output values
+    let outputCallback (input: Input, value) =
+        buffer.Enqueue(value)
+        if buffer.Count = 2 then
+            // First, it will output a value indicating the color to paint the panel the robot is over: 0 means to paint the panel black, and 1 means to paint the panel white.
+            let newPanelColour = enum<Colour> (int (buffer.Dequeue()))
+            
+            //Second, it will output a value indicating the direction the robot should turn: 0 means it should turn left 90 degrees, and 1 means it should turn right 90 degrees.
+            let turn = enum<Turn> (int (buffer.Dequeue()))
+            
+            // Paint
+            panels.[pos] <- newPanelColour
+            
+            // Move
+            direction <-
+                match turn with
+                | Turn.Left when direction = up -> left
+                | Turn.Right when direction = up -> right
+                | Turn.Left when direction = right -> up
+                | Turn.Right when direction = right -> down
+                | Turn.Left when direction = down -> right
+                | Turn.Right when direction = down -> left
+                | Turn.Left when direction = left -> down
+                | Turn.Right when direction = left -> up
+                | _ -> failwith "Not supported."
+                // First attempt: - possible to make something like this work? Tried an active pattern but no bueno.
+//                    match (direction, turn) with
+//                    | up, Turn.Left -> left
+//                    | up, Turn.Right -> right
+//                    | right, Turn.Left -> up
+//                    | right, Turn.Right -> down
+//                    | down, Turn.Left -> right
+//                    | down, Turn.Right -> left
+//                    | left, Turn.Left -> down
+//                    | left, Turn.Right -> up
+            pos <- move pos direction
+            
+            let currPanelColour =
+                if panels.ContainsKey(pos) then
+                    panels.[pos]
+                else
+                    Colour.Black
+            
+            input.Enqueue(int64 currPanelColour)
+    
+    let _ = run prog (new Input([0L])) (new Output()) 0L outputCallback
+    let panelCount = panels.Count 
+    printfn "Day 11 part 1 result: %d" panelCount // 1951 verified correct.
