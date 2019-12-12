@@ -127,7 +127,7 @@ let getArg2 (relBase: int64) (p:Param) =
     | ParamMode.Immediate -> failwith "Unexpected parameter mode."
     | _ -> failwith "Parameter mode unsupported."
  
-let eval (program: Program) (instruction: Instruction) (input: Input) (output: Output) (relBase: int64) =
+let eval (program: Program) (instruction: Instruction) (input: Input) (output: Output) (relBase: int64) outputCallback =
     let printfn _ _ = () // turn off logging for perf
     let mutable newState = None
     let getArg = getArg program relBase // partial application
@@ -167,6 +167,7 @@ let eval (program: Program) (instruction: Instruction) (input: Input) (output: O
             let value = getArg param
             printfn "%A" (instruction, value)
             output.Enqueue(value)
+            outputCallback(input, value)
         | OpCode.RelativeBaseOffset ->
             let value = getArg param
             printfn "%A" (instruction, value)
@@ -178,8 +179,8 @@ let eval (program: Program) (instruction: Instruction) (input: Input) (output: O
     | _ -> failwith "Unsupported opCode"
     
     newState
-
-let run (program : Program) (input: Input) (output: Output) initPc =
+let noop _ = () // noop for callback
+let run (program : Program) (input: Input) (output: Output) initPc outputCallback =
     let mutable pc = initPc
     let mutable status = Running
     let mutable relBase = 0L
@@ -187,15 +188,17 @@ let run (program : Program) (input: Input) (output: Output) initPc =
     while status = Running do
         let instruction = parse program pc
         
-        let newState = eval program instruction input output relBase
+        let newState = eval program instruction input output relBase outputCallback
         
+        // TODO: Clean this up (DRY)
         match newState with
         | Some (PCOverride pcO) -> pc <- pcO 
         | Some (Status s) -> status <- s
         | Some (NewRelBase rb) ->
             relBase <- rb
-            pc <- (pc + int64 instruction.Length) // TODO: DRY
+            pc <- (pc + int64 instruction.Length)
         | None -> pc <- (pc + int64 instruction.Length)
+
         
     (status, pc)
 
@@ -214,7 +217,7 @@ let runTests() =
             |> parseProgDesc
         let expected = [| 109L; 1L; 204L; -1L; 1001L; 100L; 1L; 100L; 1008L; 100L; 16L; 101L; 1006L; 101L; 0L; 99L |]
         let output = new Output()
-        let _ = run prog (new Input()) output 0L
+        let _ = run prog (new Input()) output 0L noop
         let actual = output.ToArray()
         assert (expected = actual)
         
@@ -225,7 +228,7 @@ let runTests() =
             |> parseProgDesc
         let expected = 16
         let output = new Output()
-        let _ = run prog (new Input()) output 0L
+        let _ = run prog (new Input()) output 0L noop
         let result = output.Dequeue()
         let actual = result.ToString().Length
         assert (expected = actual)
@@ -237,13 +240,26 @@ let runTests() =
             |> parseProgDesc
         let expected = 1125899906842624L
         let output = new Output()
-        let _ = run prog (new Input()) output 0L
+        let _ = run prog (new Input()) output 0L noop
         let actual = output.Dequeue()
+        assert (expected = actual)
+        
+    let ``day 11 callback test``() =
+        let prog =
+            "104,1125899906842624,99"
+            |> parseProgDesc
+        let expected = 1125899906842624L
+        let mutable actual = 0L
+        let outputCallback (_, value) =
+            actual <- value
+        let _ = run prog (new Input()) (new Output()) 0L outputCallback
         assert (expected = actual)
     
     ``day 9 example 1 - quine``()
     ``day 9 example 2 - large multiply`` ()
     ``day 9 example 3 - large output`` ()
+    
+    ``day 11 callback test``()
     
 let execute1() =
     let prog = File.ReadAllText "Auxi\day11-input.txt" |> parseProgDesc
