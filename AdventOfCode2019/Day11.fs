@@ -232,7 +232,7 @@ type Colour =
     | White = 1
      
 
-//type Panel = Point * Colour
+type Panels = Dictionary<Point, Colour>
 
 let up = Vector (0, 1)
 let down = Vector (0, -1)
@@ -246,6 +246,57 @@ let left = Vector (-1, 0)
     
 let move ((posX, posY): Point) ((dirX, dirY): Vector) =
     (posX + dirX, posY + dirY) 
+
+let paintPanels (prog: Program) initialInput =
+    let panels = new Panels() // panels covered
+    let mutable pos = Point (0,0)
+    let mutable direction = Vector (0,1) // up
+    let buffer = new Queue<int64>() // buffer to hold 2 output values
+    let outputCallback (input: Input, value) =
+        buffer.Enqueue(value)
+        if buffer.Count = 2 then
+            // First, it will output a value indicating the color to paint the panel the robot is over: 0 means to paint the panel black, and 1 means to paint the panel white.
+            let newPanelColour = enum<Colour> (int (buffer.Dequeue()))
+            
+            //Second, it will output a value indicating the direction the robot should turn: 0 means it should turn left 90 degrees, and 1 means it should turn right 90 degrees.
+            let turn = enum<Turn> (int (buffer.Dequeue()))
+            
+            // Paint
+            panels.[pos] <- newPanelColour
+            
+            // Move
+            direction <-
+                match turn with
+                | Turn.Left when direction = up -> left
+                | Turn.Right when direction = up -> right
+                | Turn.Left when direction = right -> up
+                | Turn.Right when direction = right -> down
+                | Turn.Left when direction = down -> right
+                | Turn.Right when direction = down -> left
+                | Turn.Left when direction = left -> down
+                | Turn.Right when direction = left -> up
+                | _ -> failwith "Not supported."
+                // First attempt: - possible to make something like this work? Tried an active pattern but no bueno.
+    //                    match (direction, turn) with
+    //                    | up, Turn.Left -> left
+    //                    | up, Turn.Right -> right
+    //                    | right, Turn.Left -> up
+    //                    | right, Turn.Right -> down
+    //                    | down, Turn.Left -> right
+    //                    | down, Turn.Right -> left
+    //                    | left, Turn.Left -> down
+    //                    | left, Turn.Right -> up
+            pos <- move pos direction
+            
+            let currPanelColour =
+                if panels.ContainsKey(pos) then
+                    panels.[pos]
+                else
+                    Colour.Black
+            input.Enqueue(int64 currPanelColour)
+            
+    let _ = run prog (new Input([int64 initialInput])) (new Output()) 0L outputCallback
+    panels
 
 let runTests() =
     // Some tests from Day 9 - regression checks
@@ -300,60 +351,49 @@ let runTests() =
     
     ``day 11 callback test``()
     
+
 let execute1() =
     let prog =
             File.ReadAllText "Auxi\day11-input.txt"
             |> parseProgDesc
-            
-    let panels = new Dictionary<Point, Colour>() // panels covered
-    
-    let mutable pos = Point (0,0)
-    let mutable direction = Vector (0,1) // up
-    let buffer = new Queue<int64>() // buffer to hold 2 output values
-    let outputCallback (input: Input, value) =
-        buffer.Enqueue(value)
-        if buffer.Count = 2 then
-            // First, it will output a value indicating the color to paint the panel the robot is over: 0 means to paint the panel black, and 1 means to paint the panel white.
-            let newPanelColour = enum<Colour> (int (buffer.Dequeue()))
-            
-            //Second, it will output a value indicating the direction the robot should turn: 0 means it should turn left 90 degrees, and 1 means it should turn right 90 degrees.
-            let turn = enum<Turn> (int (buffer.Dequeue()))
-            
-            // Paint
-            panels.[pos] <- newPanelColour
-            
-            // Move
-            direction <-
-                match turn with
-                | Turn.Left when direction = up -> left
-                | Turn.Right when direction = up -> right
-                | Turn.Left when direction = right -> up
-                | Turn.Right when direction = right -> down
-                | Turn.Left when direction = down -> right
-                | Turn.Right when direction = down -> left
-                | Turn.Left when direction = left -> down
-                | Turn.Right when direction = left -> up
-                | _ -> failwith "Not supported."
-                // First attempt: - possible to make something like this work? Tried an active pattern but no bueno.
-//                    match (direction, turn) with
-//                    | up, Turn.Left -> left
-//                    | up, Turn.Right -> right
-//                    | right, Turn.Left -> up
-//                    | right, Turn.Right -> down
-//                    | down, Turn.Left -> right
-//                    | down, Turn.Right -> left
-//                    | left, Turn.Left -> down
-//                    | left, Turn.Right -> up
-            pos <- move pos direction
-            
-            let currPanelColour =
-                if panels.ContainsKey(pos) then
-                    panels.[pos]
-                else
-                    Colour.Black
-            
-            input.Enqueue(int64 currPanelColour)
-    
-    let _ = run prog (new Input([0L])) (new Output()) 0L outputCallback
+    let panels = paintPanels prog Colour.Black       
     let panelCount = panels.Count 
     printfn "Day 11 part 1 result: %d" panelCount // 1951 verified correct.
+    
+let getBounds (panels: Panels) =
+    let initial = ((Int32.MaxValue,Int32.MaxValue),(Int32.MinValue,Int32.MinValue))
+    let boundingRect: Point*Point =
+        (initial, panels.Keys) ||> Seq.fold (
+            fun ((minX, minY), (maxX, maxY)) (x, y) ->
+                (Math.Min(x, minX), Math.Min(y, minY)),
+                (Math.Max(x, maxX), Math.Max(y, maxY))
+            )
+    boundingRect
+
+let printPanels (panels: Panels) =
+    // fit to 0-based grid
+    let ((blX, blY), (trX, trY))  = getBounds panels
+    let width = 1 + trX - blX
+    let height = 1 + trY - blY
+    let grid = Array2D.create<sbyte> height width (sbyte 0)
+    panels |> Seq.iter (fun kvp ->
+        let (x, y) = kvp.Key
+        let row = x - blX
+        let col = y - blY
+        let v =
+            match kvp.Value with
+            | Colour.Black -> sbyte 0
+            | Colour.White -> sbyte 1
+            | _ -> failwith "Unexpected."
+        grid.[col,row] <- v
+        )
+    let s = sprintf "%A" grid // need to post-process this, inc. flipping vertical.
+    printfn "%s" s
+    ()
+let execute2() =
+    let prog =
+            File.ReadAllText "Auxi\day11-input.txt"
+            |> parseProgDesc
+    let panels = paintPanels prog Colour.White     
+    printPanels panels
+    ()
