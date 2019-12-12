@@ -1,15 +1,14 @@
-﻿module AdventOfCode2019.Day9
-open AdventOfCode2019.Day7
+﻿module AdventOfCode2019.Day11
 open System.Collections.Generic
 open Shared
 open System
 open System.IO
 
-// Day 9: Sensor Boost
-// https://adventofcode.com/2019/day/9
+// Day 11: Space Police
+// https://adventofcode.com/2019/day/11
 
 
-// BASED ON DAY 7
+// BASED ON DAY 9
 // *****
 
 // Program/memory - sparse vector
@@ -207,7 +206,8 @@ let parseProgDesc (desc: string) : Program =
 // *****
 
 let runTests() =
-    let ``example 1 - quine`` () =
+    // Some tests from Day 9 - regression checks
+    let ``day 9 example 1 - quine`` () =
         // "takes no input and produces a copy of itself as output"
         let prog =
             "109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99"
@@ -218,7 +218,7 @@ let runTests() =
         let actual = output.ToArray()
         assert (expected = actual)
         
-    let ``example 2 - large multiply`` () =
+    let ``day 9 example 2 - large multiply`` () =
         // "should output a 16-digit number"
         let prog =
             "1102,34915192,34915192,7,4,7,99,0"
@@ -230,7 +230,7 @@ let runTests() =
         let actual = result.ToString().Length
         assert (expected = actual)
         
-    let ``example 3 - large output`` () =
+    let ``day 9 example 3 - large output`` () =
         // "should output the large number in the middle"
         let prog =
             "104,1125899906842624,99"
@@ -241,22 +241,13 @@ let runTests() =
         let actual = output.Dequeue()
         assert (expected = actual)
     
-    ``example 1 - quine``()
-    ``example 2 - large multiply`` ()
-    ``example 3 - large output`` ()
+    ``day 9 example 1 - quine``()
+    ``day 9 example 2 - large multiply`` ()
+    ``day 9 example 3 - large output`` ()
     
 let execute1() =
-    let prog = File.ReadAllText "Auxi\day9-input.txt" |> parseProgDesc
-    let output = new Output()
-    let _ = run prog (new Input([1L])) output 0L
-    let outVal = output.Dequeue()
-    assert (output.Count = 0)
-    printfn "Day 9 part 1 result: %d" outVal // 2932210790 confirmed correct
-    
-let execute2() =
-    let prog = File.ReadAllText "Auxi\day9-input.txt" |> parseProgDesc
-    let output = new Output()
-    let _ = run prog (new Input([2L])) output 0L
-    let outVal = output.Dequeue()
-    assert (output.Count = 0)
-    printfn "Day 9 part 2 result: %d" outVal // 73144 confirmed correct
+    let prog = File.ReadAllText "Auxi\day11-input.txt" |> parseProgDesc
+    let panelCount = 0
+    let _ = run prog (new Input()) (new Output()) 0L
+    assert (panelCount > 0)
+    printfn "Day 11 part 1 result: %d" panelCount
